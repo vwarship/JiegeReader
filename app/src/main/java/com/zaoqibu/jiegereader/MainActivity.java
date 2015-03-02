@@ -1,11 +1,13 @@
 package com.zaoqibu.jiegereader;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.zaoqibu.jiegereader.rss.Item;
@@ -25,10 +27,14 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
 
         newsArrayAdapter = new NewsArrayAdapter(this, R.layout.news_list_item);
         lvNewses.setAdapter(newsArrayAdapter);
-        lvNewses.setOnClickListener(new View.OnClickListener() {
+        lvNewses.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String url = newsArrayAdapter.getItem(position).getLink();
+
+                Intent intent = new Intent(MainActivity.this, ShowOriginalArticleActivity.class);
+                intent.putExtra(ShowOriginalArticleActivity.EXTRA_URL, url);
+                startActivity(intent);
             }
         });
 
