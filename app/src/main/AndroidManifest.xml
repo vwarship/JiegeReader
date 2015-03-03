@@ -22,6 +22,10 @@
             android:name=".ShowOriginalArticleActivity"
             android:label="@string/title_activity_show_original_article" >
         </activity>
+        <activity
+            android:name=".SubscriptionCenterActivity"
+            android:label="@string/title_activity_subscription_center" >
+        </activity>
     </application>
 
 </manifest>

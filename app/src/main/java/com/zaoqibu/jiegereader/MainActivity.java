@@ -38,7 +38,8 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
             }
         });
 
-        final String url = "http://tech.qq.com/web/webnews/rss_11.xml";
+        final String url = "http://www.zhihu.com/rss";
+//        final String url = "http://tech.qq.com/web/webnews/rss_11.xml";
         new HTMLDownloader(url, this).execute();
     }
 
@@ -70,7 +71,9 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_subscription_center) {
+            Intent intent = new Intent(this, SubscriptionCenterActivity.class);
+            startActivity(intent);
             return true;
         }
 

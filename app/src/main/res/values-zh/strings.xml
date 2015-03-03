@@ -2,4 +2,7 @@
     <string name="app_name">杰哥阅读器</string>
 
     <string name="action_settings">设置</string>
+    <string name="action_subscription_center">订阅中心</string>
+    <string name="title_activity_subscription_center">订阅中心</string>
+
 </resources>

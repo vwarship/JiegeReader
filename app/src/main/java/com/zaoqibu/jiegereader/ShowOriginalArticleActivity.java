@@ -25,6 +25,8 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
 
         WebSettings webSettings = webView.getSettings();
         webSettings.setBuiltInZoomControls(true);
+
+        // 网页根据你手机的屏幕自适应。
         webSettings.setJavaScriptEnabled(true);
 
         webView.setWebViewClient(new WebViewClient() {

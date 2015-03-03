@@ -4,5 +4,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_show_original_article">ShowOriginalArticleActivity</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="action_subscription_center">Subscription Center</string>
+    <string name="title_activity_subscription_center">Subscription Center</string>
+
 </resources>
