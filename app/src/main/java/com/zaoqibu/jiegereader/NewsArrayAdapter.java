@@ -14,19 +14,17 @@ import com.zaoqibu.jiegereader.util.ViewHolder;
  */
 public class NewsArrayAdapter extends ArrayAdapter<Item> {
     private int resource;
-    private LayoutInflater inflater;
 
     public NewsArrayAdapter(Context context, int resource) {
         super(context, resource);
         this.resource = resource;
-
-        inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         if (convertView == null) {
-            convertView = inflater.inflate(resource, null);
+            LayoutInflater inflater = LayoutInflater.from(getContext());
+            convertView = inflater.inflate(resource, parent, false);
         }
 
         Item news = getItem(position);

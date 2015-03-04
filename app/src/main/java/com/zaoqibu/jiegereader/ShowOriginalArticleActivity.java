@@ -1,10 +1,12 @@
 package com.zaoqibu.jiegereader;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -23,8 +25,20 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
 
         webView = (WebView)findViewById(R.id.webView);
 
+        webView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+
+        //Android 19 has Chromium engine for WebView. I guess it works better with hardware acceleration.
+        if (Build.VERSION.SDK_INT >= 19) {
+            webView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        }
+        else {
+            webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
+
         WebSettings webSettings = webView.getSettings();
         webSettings.setBuiltInZoomControls(true);
+
+        webSettings.setAppCacheEnabled(false);
 
         // 网页根据你手机的屏幕自适应。
         webSettings.setJavaScriptEnabled(true);
@@ -47,6 +61,13 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
         }
 
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onDestroy() {
+        webView.destroy();
+        webView = null;
+        super.onDestroy();
     }
 
     @Override
