@@ -38,7 +38,8 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
             }
         });
 
-        final String url = "http://www.zhihu.com/rss";
+        final String url = "http://www.36kr.com/feed";
+//        final String url = "http://www.zhihu.com/rss";
 //        final String url = "http://tech.qq.com/web/webnews/rss_11.xml";
         new HTMLDownloader(url, this).execute();
     }
