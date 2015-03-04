@@ -26,4 +26,5 @@ dependencies {
     compile files('libs/ext/antlr-2.7.4.jar')
     compile files('libs/ext/chardet-1.0.jar')
     compile files('libs/ext/jargs-1.0.jar')
+    compile files('libs/base-adapter-helper-1.1.11.jar')
 }
