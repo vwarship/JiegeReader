@@ -65,9 +65,8 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
 
     @Override
     protected void onDestroy() {
-        webView.destroy();
-        webView = null;
         super.onDestroy();
+        System.exit(0);
     }
 
     @Override

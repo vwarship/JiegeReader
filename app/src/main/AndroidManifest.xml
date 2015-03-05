@@ -20,7 +20,10 @@
         </activity>
         <activity
             android:name=".ShowOriginalArticleActivity"
-            android:label="@string/title_activity_show_original_article" >
+            android:label="@string/title_activity_show_original_article"
+            android:launchMode="singleTop"
+            android:process=":remote"
+            android:screenOrientation="unspecified">
         </activity>
         <activity
             android:name=".SubscriptionCenterActivity"
