@@ -10,6 +10,8 @@ import com.zaoqibu.jiegereader.rss.Item;
 import com.zaoqibu.jiegereader.util.DateUtil;
 import com.zaoqibu.jiegereader.util.ViewHolder;
 
+import java.util.List;
+
 /**
  * Created by vwarship on 2015/3/3.
  */
@@ -17,8 +19,8 @@ public class NewsArrayAdapter extends ArrayAdapter<Item> {
     private int resource;
     private DateUtil dateUtil;
 
-    public NewsArrayAdapter(Context context, int resource) {
-        super(context, resource);
+    public NewsArrayAdapter(Context context, int resource, List<Item> newsList) {
+        super(context, resource, newsList);
         this.resource = resource;
 
         dateUtil = new DateUtil();

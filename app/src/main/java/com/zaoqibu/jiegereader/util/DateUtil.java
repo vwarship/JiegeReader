@@ -21,6 +21,14 @@ public class DateUtil {
             "yyyy-MM-dd'T'HH:mm:ss'Z'"
     };
 
+    /* 时间可读的中英文对应 英文需要考虑复数
+        刚刚       Just
+        1小时前    1 hour ago
+        10小时前   10 hours ago
+        1分钟前    1 minute ago
+        10分钟前   10 minutes ago
+        昨天       Yesterday
+     */
     public String timeToReadable(long time) {
         final long curTimeMS = new Date().getTime();
         final long timeInterval = curTimeMS - time;

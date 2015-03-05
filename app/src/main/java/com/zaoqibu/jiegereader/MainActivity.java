@@ -1,6 +1,10 @@
 package com.zaoqibu.jiegereader;
 
+import android.app.LoaderManager;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -10,13 +14,29 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.zaoqibu.jiegereader.db.Reader;
+import com.zaoqibu.jiegereader.db.ReaderProvider;
 import com.zaoqibu.jiegereader.rss.Item;
 import com.zaoqibu.jiegereader.rss.Rss;
 import com.zaoqibu.jiegereader.rss.RssParser;
 
+import java.util.ArrayList;
+import java.util.List;
 
-public class MainActivity extends ActionBarActivity implements HTMLDownloader.HTMLDownloaderListener {
+
+public class MainActivity extends ActionBarActivity implements HTMLDownloader.HTMLDownloaderListener, LoaderManager.LoaderCallbacks<Cursor> {
+    private List<Item> newsList;
     private NewsArrayAdapter newsArrayAdapter;
+    private ReaderProvider readerProvider;
+
+    private static final String[] PROJECTION =
+            new String[] {
+                    Reader.Newses._ID,
+                    Reader.Newses.COLUMN_NAME_TITLE,
+                    Reader.Newses.COLUMN_NAME_LINK,
+                    Reader.Newses.COLUMN_NAME_DESCRIPTION,
+                    Reader.Newses.COLUMN_NAME_PUB_DATE
+            };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +45,8 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
 
         ListView lvNewses = (ListView)findViewById(R.id.lvNewses);
 
-        newsArrayAdapter = new NewsArrayAdapter(this, R.layout.news_list_item);
+        newsList = new ArrayList<Item>();
+        newsArrayAdapter = new NewsArrayAdapter(this, R.layout.news_list_item, newsList);
         lvNewses.setAdapter(newsArrayAdapter);
         lvNewses.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -37,6 +58,10 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
                 startActivity(intent);
             }
         });
+
+        readerProvider = new ReaderProvider(this);
+        readNewses();
+//        getLoaderManager().initLoader(0, null, this);
 
         final String url = "http://www.36kr.com/feed";
 //        final String url = "http://www.zhihu.com/rss";
@@ -51,9 +76,58 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
 
         Log.i("TEST", "channel item count: "+rss.getChannel().getItems().size());
 
+//        for (Item item : rss.getChannel().getItems()) {
+//            newsArrayAdapter.add(item);
+//        }
+//        newsArrayAdapter.notifyDataSetChanged();
+
         for (Item item : rss.getChannel().getItems()) {
-            newsArrayAdapter.add(item);
+            Log.i("TEST", item.getLink());
+            if (isNewsExist(item.getLink()))
+                continue;
+
+            ContentValues values = new ContentValues();
+            values.put(Reader.Newses.COLUMN_NAME_TITLE, item.getTitle());
+            values.put(Reader.Newses.COLUMN_NAME_LINK, item.getLink());
+            values.put(Reader.Newses.COLUMN_NAME_DESCRIPTION, item.getDescription());
+            values.put(Reader.Newses.COLUMN_NAME_PUB_DATE, item.getPubDate());
+
+            readerProvider.insert(values);
         }
+
+        readNewses();
+    }
+
+    private boolean isNewsExist(String link) {
+        Cursor cursor = readerProvider.query(new String[]{Reader.Newses._ID},
+                String.format("%s=?", Reader.Newses.COLUMN_NAME_LINK),
+                new String[]{link});
+
+        boolean exist = cursor.getCount() > 0;
+        cursor.close();
+
+        return exist;
+    }
+
+    private void readNewses() {
+        newsList.clear();
+
+        Cursor cursor = readerProvider.query(PROJECTION, null, null);
+        int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
+        int linkColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_LINK);
+        int descriptionColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_DESCRIPTION);
+        int pubDateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_PUB_DATE);
+        while (cursor.moveToNext()) {
+            Item item = new Item();
+            item.setTitle(cursor.getString(titleColumnIndex));
+            item.setLink(cursor.getString(linkColumnIndex));
+            item.setDescription(cursor.getString(descriptionColumnIndex));
+            item.setPubDate(cursor.getString(pubDateColumnIndex));
+
+            newsList.add(item);
+        }
+        cursor.close();
+
         newsArrayAdapter.notifyDataSetChanged();
     }
 
@@ -81,4 +155,18 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+    }
 }
