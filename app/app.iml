@@ -90,7 +90,6 @@
     <orderEntry type="library" exported="" name="support-annotations-21.0.3" level="project" />
     <orderEntry type="library" exported="" name="support-v4-21.0.3" level="project" />
     <orderEntry type="library" exported="" name="cpdetector_1.0.10" level="project" />
-    <orderEntry type="library" exported="" name="base-adapter-helper-1.1.11" level="project" />
     <orderEntry type="library" exported="" name="jargs-1.0" level="project" />
     <orderEntry type="library" exported="" name="chardet-1.0" level="project" />
   </component>

@@ -2,13 +2,33 @@
 
 ### Backlog
 
-* 增加内容提供者保存数据。
-  
-* 文章显示时间。（统一成10分钟前，1小时前，昨天，前天）
+* 增加SQLite保存数据。
+
+* 用户可以手动更新新闻。
+
+* 打开应用，在后台自动更新。
+
+* 增加首屏 Activity
+
+* 检查RSS是否更新。
+
+* 查看后将自动删除文章。
+
+* 可以分享社交应用上。（朋友圈、微博等）
+
+* 文章超过3天后将自动删除。
+
+* 可以通过左抽屉查看单个RSS源。
+  * 每个RSS源显示文章数。
+  * 最下面显示文章最后更新时间。
 
 * channel 中的 <lastBuildDate> 代表内容最后的修改时间。（可选标签）
 
 * 优化 WebView
+
+### 0.4.0 - 2015-3-6
+
+* 时间格式化成可读的。如：刚刚、1分钟前、1小时前、昨天、03-05 21:09
 
 ### 0.3.0 - 2015-3-5
 
@@ -17,6 +37,8 @@
 * 解读时间格式：
   * 2015-03-04 01:22:20
   * Wed, 04 Mar 2015 00:00:00 +0800
+
+* 优化 WebView。使用单独进程的方式解决了影响现有进程的问题。
 
 ### 0.2.0 - 2015-3-4
 
@@ -37,85 +59,3 @@
 * 制作了图标。
 
 * 增加了中英文的支持。
-
-------------
-public class NewsArrayAdapter extends ArrayAdapter<Item> {
-    private int resource;
-
-    public NewsArrayAdapter(Context context, int resource) {
-        super(context, resource);
-        this.resource = resource;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View view = convertView;
-
-        if (convertView == null) {
-            LayoutInflater inflater = LayoutInflater.from(getContext());
-            view = inflater.inflate(resource, parent, false);
-        }
-
-        Item news = getItem(position);
-
-        TextView newsTitle = (TextView)view.findViewById(R.id.tvNewsTitle);
-        newsTitle.setText(news.getTitle());
-
-        TextView newsDate = (TextView)view.findViewById(R.id.tvNewsDate);
-        newsDate.setText(news.getPubDate());
-
-        return view;
-    }
-}
-
-
-public class NewsArrayAdapter extends ArrayAdapter<Item> {
-    private int resource;
-    private LayoutInflater inflater;
-
-    public NewsArrayAdapter(Context context, int resource) {
-        super(context, resource);
-        this.resource = resource;
-
-        inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        View view = convertView;
-
-        class ViewHolder {
-            TextView title;
-            TextView date;
-        }
-        final ViewHolder viewHolder;
-
-        if (convertView == null) {
-            view = inflater.inflate(resource, null);
-
-            viewHolder = new ViewHolder();
-            viewHolder.title = (TextView)view.findViewById(R.id.tvNewsTitle);
-            viewHolder.date = (TextView)view.findViewById(R.id.tvNewsDate);
-
-            view.setTag(viewHolder);
-        } else {
-            viewHolder = (ViewHolder)view.getTag();
-        }
-
-        Item news = getItem(position);
-
-        viewHolder.title.setText(news.getTitle());
-        viewHolder.date.setText(news.getPubDate());
-
-        return view;
-    }
-}
-
-
-        newsArrayAdapter = new QuickAdapter<Item>(this, R.layout.news_list_item) {
-            @Override
-            protected void convert(BaseAdapterHelper baseAdapterHelper, Item item) {
-                baseAdapterHelper.setText(R.id.tvNewsTitle, item.getTitle())
-                        .setText(R.id.tvNewsDate, item.getPubDate());
-            }
-        };
