@@ -57,7 +57,7 @@ public class ReaderProvider {
         }
     }
 
-    public Cursor query(String[] projection, String selection, String[] selectionArgs) {
+    public Cursor query(String[] projection, String selection, String[] selectionArgs, String sortOrder) {
 
         // Constructs a new query builder and sets its table name
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -80,7 +80,7 @@ public class ReaderProvider {
                 selectionArgs, // The values for the where clause
                 null,          // don't group the rows
                 null,          // don't filter by row groups
-                null           // The sort order
+                sortOrder      // The sort order
         );
 
         return c;

@@ -37,7 +37,7 @@ public class NewsArrayAdapter extends ArrayAdapter<Item> {
 
         final ViewHolder viewHolder = ViewHolder.get(convertView);
         viewHolder.setText(R.id.tvNewsTitle, news.getTitle());
-        viewHolder.setText(R.id.tvNewsDate, dateUtil.timeToReadable(dateUtil.dateParse(news.getPubDate())) );
+        viewHolder.setText(R.id.tvNewsDate, dateUtil.timeToReadable(news.getPubDate()) );
 
         return convertView;
     }

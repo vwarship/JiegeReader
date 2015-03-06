@@ -1,6 +1,6 @@
 package com.zaoqibu.jiegereader.rss;
 
-import android.util.Log;
+import com.zaoqibu.jiegereader.util.DateUtil;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -13,6 +13,12 @@ import java.io.StringReader;
  * Created by vwarship on 2015/3/3.
  */
 public class RssParser {
+    private DateUtil dateUtil;
+
+    public RssParser() {
+        dateUtil = new DateUtil();
+    }
+
     public Rss parse(String rssText) {
         Channel channel = new Channel();
 
@@ -47,8 +53,6 @@ public class RssParser {
                     Item item = new Item();
                     parseChannelItem(xmlPullParser, eventType, item);
                     channel.addItem(item);
-
-                    Log.i("TEST", item.getTitle());
                 }
 
                 eventType = xmlPullParser.next();
@@ -73,7 +77,8 @@ public class RssParser {
                     String link = xmlPullParser.nextText();
                     item.setLink(link);
                 } if (xmlPullParser.getName().equals("pubDate")) {
-                    String pubDate = xmlPullParser.nextText();
+                    String pubDateString = xmlPullParser.nextText();
+                    long pubDate = dateUtil.dateParse(pubDateString);
                     item.setPubDate(pubDate);
                 } if (xmlPullParser.getName().equals("description")) {
                     String description = xmlPullParser.nextText();

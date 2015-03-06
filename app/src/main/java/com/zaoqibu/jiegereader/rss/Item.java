@@ -7,7 +7,7 @@ public class Item {
     private String title;
     private String link;
     private String description;
-    private String pubDate;
+    private long pubDate;
 
     public String getTitle() {
         return title;
@@ -33,11 +33,11 @@ public class Item {
         this.description = description;
     }
 
-    public String getPubDate() {
+    public long getPubDate() {
         return pubDate;
     }
 
-    public void setPubDate(String pubDate) {
+    public void setPubDate(long pubDate) {
         this.pubDate = pubDate;
     }
 }

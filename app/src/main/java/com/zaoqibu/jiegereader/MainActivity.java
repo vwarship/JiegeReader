@@ -101,7 +101,7 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
     private boolean isNewsExist(String link) {
         Cursor cursor = readerProvider.query(new String[]{Reader.Newses._ID},
                 String.format("%s=?", Reader.Newses.COLUMN_NAME_LINK),
-                new String[]{link});
+                new String[]{link}, null);
 
         boolean exist = cursor.getCount() > 0;
         cursor.close();
@@ -112,18 +112,21 @@ public class MainActivity extends ActionBarActivity implements HTMLDownloader.HT
     private void readNewses() {
         newsList.clear();
 
-        Cursor cursor = readerProvider.query(PROJECTION, null, null);
+        Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc");
+
         int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
         int linkColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_LINK);
         int descriptionColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_DESCRIPTION);
         int pubDateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_PUB_DATE);
+
         while (cursor.moveToNext()) {
             Item item = new Item();
             item.setTitle(cursor.getString(titleColumnIndex));
             item.setLink(cursor.getString(linkColumnIndex));
             item.setDescription(cursor.getString(descriptionColumnIndex));
-            item.setPubDate(cursor.getString(pubDateColumnIndex));
+            item.setPubDate(cursor.getLong(pubDateColumnIndex));
 
+            Log.i("TEST", String.format("%d, %s", item.getPubDate(), item.getTitle()));
             newsList.add(item);
         }
         cursor.close();
