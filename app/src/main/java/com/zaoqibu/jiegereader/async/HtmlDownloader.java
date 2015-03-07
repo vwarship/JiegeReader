@@ -3,7 +3,11 @@ package com.zaoqibu.jiegereader.async;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.zaoqibu.jiegereader.util.DateUtil;
+
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -50,24 +54,31 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
     }
 
     private String downloadHtml(String url) {
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet(url);
         String html = "";
+
+        HttpGet request = new HttpGet(url);
+        HttpClient client = new DefaultHttpClient();
+
         try {
             HttpResponse response = client.execute(request);
-            InputStream in = response.getEntity().getContent();
+//            long getLastModifiedTime = getLastModifiedTime(response);
 
-            String charsetName = getCharsetName(url);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, charsetName));
+            final int responseCode = response.getStatusLine().getStatusCode();
+            if(responseCode == HttpStatus.SC_OK) {
+                InputStream in = response.getEntity().getContent();
 
-            StringBuilder str = new StringBuilder();
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                str.append(line);
+                String charsetName = getCharsetName(url);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, charsetName));
+
+                StringBuilder str = new StringBuilder();
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    str.append(line);
+                }
+                in.close();
+
+                html = str.toString();
             }
-            in.close();
-
-            html = str.toString();
         } catch (IllegalStateException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -75,6 +86,20 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
         }
 
         return html;
+    }
+
+    private long getLastModifiedTime(HttpResponse response) {
+        long lastModified = 0;
+
+        Header header = response.getFirstHeader("Date");
+        if (header != null) {
+            String lastModifiedStr = header.getValue();
+
+            DateUtil dateUtil = new DateUtil();
+            lastModified = dateUtil.dateParse(lastModifiedStr);
+        }
+
+        return lastModified;
     }
 
     private String getCharsetName(String url) {

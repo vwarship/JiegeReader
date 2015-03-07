@@ -1,29 +1,62 @@
 package com.zaoqibu.jiegereader;
 
+import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 
+import com.zaoqibu.jiegereader.db.Reader;
+import com.zaoqibu.jiegereader.db.ReaderProvider;
+import com.zaoqibu.jiegereader.db.RssFeed;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class SubscriptionCenterActivity extends ActionBarActivity {
-    private SubscriptionArrayAdapter subscriptionArrayAdapter;
+    private ListView lvSubscriptionList;
+    private ReaderProvider readerProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_subscription_center);
 
-        ListView lvSubscriptionList = (ListView)findViewById(R.id.lvSubscriptionList);
+        readerProvider = new ReaderProvider(this);
+        lvSubscriptionList = (ListView)findViewById(R.id.lvSubscriptionList);
 
-        subscriptionArrayAdapter = new SubscriptionArrayAdapter(this, R.layout.subscription_list_item);
+        new AsyncTask<Void, Void, Cursor>() {
+            private /*static*/ final String[] PROJECTION =
+                    new String[] {
+                            Reader.Rsses._ID,
+                            Reader.Rsses.COLUMN_NAME_TITLE,
+                            Reader.Rsses.COLUMN_NAME_LINK,
+                            Reader.Rsses.COLUMN_NAME_IS_FEED,
+                            Reader.Rsses.COLUMN_NAME_CREATE_DATE
+                    };
 
-        subscriptionArrayAdapter.add(new Subscription("知乎每日精选", "http://www.zhihu.com/rss"));
-        subscriptionArrayAdapter.add(new Subscription("互联网_腾讯科技", "http://tech.qq.com/web/webnews/rss_11.xml"));
-        subscriptionArrayAdapter.add(new Subscription("虎嗅网", "http://www.huxiu.com/rss/0.xml"));
+            @Override
+            protected Cursor doInBackground(Void... params) {
+                List<RssFeed> rssFeeds = new ArrayList<>();
 
-        lvSubscriptionList.setAdapter(subscriptionArrayAdapter);
+                Cursor cursor = readerProvider.queryRsses(PROJECTION, null, null, null);
+
+                return cursor;
+            }
+
+            @Override
+            protected void onPostExecute(Cursor cursor) {
+                super.onPostExecute(cursor);
+
+                SubscriptionCenterAdapter subscriptionCenterAdapter =
+                        new SubscriptionCenterAdapter(SubscriptionCenterActivity.this, cursor, false);
+
+                lvSubscriptionList.setAdapter(subscriptionCenterAdapter);
+            }
+        }.execute();
     }
 
 

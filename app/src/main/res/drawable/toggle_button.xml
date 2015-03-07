@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--<item android:state_checked="true" android:state_pressed="true"/> //currently pressed turning the toggle on-->
+    <item android:state_pressed="true" android:drawable="@android:color/holo_blue_light"/> //currently pressed turning the toggle off
+    <item android:state_checked="true" android:drawable="@android:color/holo_orange_dark"/> //not pressed default checked state
+    <item android:drawable="@color/lighter_gray"/> //default non-pressed non-checked
+</selector>

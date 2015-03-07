@@ -121,7 +121,6 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
             public void run() {
                 List<String> rssLinks = new ArrayList<>();
                 for (RssFeed rssFeed : rssFeeds) {
-                    Log.i(TAG, "timerTask().........." + rssFeed.getLink());
                     rssLinks.add(rssFeed.getLink());
                 }
 

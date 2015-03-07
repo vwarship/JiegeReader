@@ -1,6 +1,5 @@
 package com.zaoqibu.jiegereader.util;
 
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.TextView;
@@ -40,4 +39,5 @@ public class ViewHolder {
         TextView view = getView(resId);
         view.setText(text);
     }
+
 }
