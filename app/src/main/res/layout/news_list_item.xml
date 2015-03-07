@@ -20,11 +20,22 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:id="@+id/tvNewsDate"
-        android:text="NewsDate"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
         android:layout_gravity="right"
         android:layout_marginTop="@dimen/news_list_item_line_spacing"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_below="@+id/tvNewsTitle" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/tvSource"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        android:layout_alignTop="@+id/tvNewsDate"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

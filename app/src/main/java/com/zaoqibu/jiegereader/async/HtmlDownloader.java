@@ -1,4 +1,4 @@
-package com.zaoqibu.jiegereader;
+package com.zaoqibu.jiegereader.async;
 
 import android.os.AsyncTask;
 import android.util.Log;
@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import info.monitorenter.cpdetector.io.ASCIIDetector;
 import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
@@ -23,42 +24,56 @@ import info.monitorenter.cpdetector.io.UnicodeDetector;
 /**
  * Created by vwarship on 2015/3/3.
  */
-public class HTMLDownloader extends AsyncTask<Void, Void, String> {
-    public static interface HTMLDownloaderListener {
+public class HtmlDownloader extends AsyncTask<Void, String, Void> {
+    private static String TAG = "HtmlDownloader";
+
+    public static interface HtmlDownloaderListener {
         public abstract void onDownloaded(String html);
     }
 
-    private HTMLDownloaderListener listener;
-    private String url;
+    private HtmlDownloaderListener listener;
+    private List<String> rssLinks;
 
-    public HTMLDownloader (String url, HTMLDownloaderListener listener) {
-        this.url = url;
+    public HtmlDownloader(List<String> rssLinks, HtmlDownloaderListener listener) {
+        this.rssLinks = rssLinks;
         this.listener = listener;
     }
 
     @Override
-    protected String doInBackground(Void... params) {
+    protected Void doInBackground(Void... params) {
+        for (String rssLink : rssLinks) {
+            String html = downloadHtml(rssLink);
+            publishProgress(html);
+        }
+
+        return null;
+    }
+
+    private String downloadHtml(String url) {
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet(url);
         String html = "";
         try {
             HttpResponse response = client.execute(request);
-            InputStream in;
-            in = response.getEntity().getContent();
+            InputStream in = response.getEntity().getContent();
+
             String charsetName = getCharsetName(url);
             BufferedReader reader = new BufferedReader(new InputStreamReader(in, charsetName));
+
             StringBuilder str = new StringBuilder();
             String line = null;
             while ((line = reader.readLine()) != null) {
                 str.append(line);
             }
             in.close();
+
             html = str.toString();
         } catch (IllegalStateException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return html;
     }
 
@@ -81,13 +96,13 @@ public class HTMLDownloader extends AsyncTask<Void, Void, String> {
     }
 
     @Override
-    protected void onPostExecute(String html) {
-        super.onPostExecute(html);
+    protected void onProgressUpdate(String... values) {
+        super.onProgressUpdate(values);
+
         if (!isCancelled()) {
+            String html = values[0];
             listener.onDownloaded(html);
         }
-
-        Log.i("TEST", html);
     }
 
 }

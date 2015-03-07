@@ -43,6 +43,46 @@ public class ReaderProvider {
                     + Reader.Newses.COLUMN_NAME_PUB_DATE + " INTEGER,"
                     + Reader.Newses.COLUMN_NAME_CREATE_DATE + " INTEGER"
                     + ");");
+
+            db.execSQL("CREATE TABLE " + Reader.Rsses.TABLE_NAME + " ("
+                    + Reader.Rsses._ID + " INTEGER PRIMARY KEY autoincrement,"
+                    + Reader.Rsses.COLUMN_NAME_TITLE + " TEXT,"
+                    + Reader.Rsses.COLUMN_NAME_LINK + " TEXT,"
+                    + Reader.Rsses.COLUMN_NAME_IS_FEED + " INTEGER default 0,"
+                    + Reader.Rsses.COLUMN_NAME_CREATE_DATE + " INTEGER"
+                    + ");");
+            initRss(db);
+        }
+
+        private void initRss(SQLiteDatabase db) {
+            class Rss {
+                String title;
+                String link;
+                int isFeed;
+                public Rss(String title, String link, int isFeed) {
+                    this.title = title;
+                    this.link = link;
+                    this.isFeed = isFeed;
+                }
+            }
+
+            Rss[] rsses = {
+                    new Rss("36氪 | 关注互联网创业", "http://www.36kr.com/feed", 1),
+                    new Rss("虎嗅网", "http://www.huxiu.com/rss/0.xml", 1),
+                    new Rss("互联网_腾讯科技", "http://tech.qq.com/web/webnews/rss_11.xml", 1),
+                    new Rss("知乎每日精选", "http://www.zhihu.com/rss", 1),
+//                    new Rss("", "", 0),
+            };
+
+            for (Rss rss : rsses) {
+                insertRss(db, rss.title, rss.link, rss.isFeed);
+            }
+        }
+
+        private void insertRss(SQLiteDatabase db, String title, String link, int isFeed) {
+            db.execSQL("INSERT INTO " + Reader.Rsses.TABLE_NAME
+                    + String.format("(%s, %s, %s)", Reader.Rsses.COLUMN_NAME_TITLE, Reader.Rsses.COLUMN_NAME_LINK, Reader.Rsses.COLUMN_NAME_IS_FEED)
+                    + " VALUES(" + String.format("'%s', '%s', %d", title, link, isFeed) + ");");
         }
 
         @Override
@@ -51,6 +91,7 @@ public class ReaderProvider {
                     + newVersion + ", which will destroy all old data");
 
             db.execSQL("DROP TABLE IF EXISTS " + Reader.Newses.TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + Reader.Rsses.TABLE_NAME);
 
             // Recreates the database with a new version
             onCreate(db);
@@ -255,4 +296,52 @@ public class ReaderProvider {
 //        // Returns the number of rows updated.
 //        return count;
 //    }
+
+    /**
+     * Table Rsses
+     */
+
+    public Cursor queryRsses(String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+
+        SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+        qb.setTables(Reader.Rsses.TABLE_NAME);
+
+        SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+
+        Cursor c = qb.query(
+                db,            // The database to query
+                projection,    // The columns to return from the query
+                selection,     // The columns for the where clause
+                selectionArgs, // The values for the where clause
+                null,          // don't group the rows
+                null,          // don't filter by row groups
+                sortOrder      // The sort order
+        );
+
+        return c;
+    }
+
+    public boolean insertRsses(ContentValues values) {
+        if (values == null)
+            return false;
+
+        Long now = Long.valueOf(System.currentTimeMillis());
+
+        if (values.containsKey(Reader.Rsses.COLUMN_NAME_CREATE_DATE) == false) {
+            values.put(Reader.Rsses.COLUMN_NAME_CREATE_DATE, now);
+        }
+
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+
+        long rowId = db.insert(
+                Reader.Rsses.TABLE_NAME,
+                null,
+                values
+        );
+
+        if (rowId > 0)
+            return true;
+
+        return false;
+    }
 }
