@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewStub;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -143,14 +145,8 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                     };
 
             @Override
-            protected void onPreExecute() {
-                if (limit == 0)
-                    newsList.clear();
-            }
-
-            @Override
             protected List<News> doInBackground(Void... params) {
-                List<News> newses = new ArrayList<News>();
+                List<News> newses = new ArrayList<>();
 
                 Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc", String.format("%d, %d", limit, offset));
 
@@ -179,8 +175,12 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
 
             @Override
             protected void onPostExecute(List<News> newses) {
+                if (limit == 0)
+                    MainActivity.this.newsList.clear();
+
                 for (News news : newses)
                     MainActivity.this.newsList.add(news);
+
                 newsArrayAdapter.notifyDataSetChanged();
             }
         }.execute();
