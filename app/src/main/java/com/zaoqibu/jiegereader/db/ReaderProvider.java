@@ -35,9 +35,6 @@ public class ReaderProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            Log.i(TAG, "onCreate.........");
-            long time = System.currentTimeMillis();
-
             db.execSQL("CREATE TABLE " + Reader.Newses.TABLE_NAME + " ("
                     + Reader.Newses._ID + " INTEGER PRIMARY KEY autoincrement,"
                     + Reader.Newses.COLUMN_NAME_TITLE + " TEXT,"
@@ -55,8 +52,6 @@ public class ReaderProvider {
                     + Reader.Rsses.COLUMN_NAME_CREATE_DATE + " INTEGER"
                     + ");");
             initRss(db);
-
-            Log.i(TAG, "onCreate........" + (System.currentTimeMillis()-time));
         }
 
         private void initRss(SQLiteDatabase db) {

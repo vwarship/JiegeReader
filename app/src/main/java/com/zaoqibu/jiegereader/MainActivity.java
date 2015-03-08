@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -67,15 +66,121 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
             }
         });
 
-        long time = System.currentTimeMillis();
         readerProvider = new ReaderProvider(this);
-        Log.i(TAG, "1........."+(System.currentTimeMillis() - time));
-        time = System.currentTimeMillis();
-        readNewses();
-        Log.i(TAG, "2........."+(System.currentTimeMillis() - time));
 
+        readNewsesAsyncTask();
+        readRssFeedsAsyncTask();
+
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                List<String> rssLinks = new ArrayList<>();
+                for (RssFeed rssFeed : rssFeeds) {
+                    rssLinks.add(rssFeed.getLink());
+                }
+
+                new HtmlDownloader(rssLinks, MainActivity.this).execute();
+            }
+        };
+
+        new Timer().schedule(timerTask, 100000, 1000*10);
+    }
+
+    @Override
+    public void onDownloaded(String html) {
+        new AsyncTask<String, ContentValues, Void>() {
+            @Override
+            protected Void doInBackground(String... params) {
+                final String html = params[0];
+
+                RssParser rssParser = new RssParser();
+                Rss rss = rssParser.parse(html);
+
+                for (Item item : rss.getChannel().getItems()) {
+                    if (isNewsExist(item.getLink()))
+                        continue;
+
+                    ContentValues values = new ContentValues();
+                    values.put(Reader.Newses.COLUMN_NAME_TITLE, item.getTitle());
+                    values.put(Reader.Newses.COLUMN_NAME_LINK, item.getLink());
+                    values.put(Reader.Newses.COLUMN_NAME_DESCRIPTION, item.getDescription());
+                    values.put(Reader.Newses.COLUMN_NAME_PUB_DATE, item.getPubDate());
+
+                    publishProgress(values);
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void onProgressUpdate(ContentValues... values) {
+                readerProvider.insert(values[0]);
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                readNewsesAsyncTask();
+            }
+        }.execute(html);
+    }
+
+    private boolean isNewsExist(String link) {
+        Cursor cursor = readerProvider.query(new String[]{Reader.Newses._ID},
+                String.format("%s=?", Reader.Newses.COLUMN_NAME_LINK),
+                new String[]{link}, null);
+
+        boolean exist = cursor.getCount() > 0;
+        cursor.close();
+
+        return exist;
+    }
+
+    private void readNewsesAsyncTask() {
+        new AsyncTask<Void, Void, List<News>>() {
+            @Override
+            protected void onPreExecute() {
+                newsList.clear();
+            }
+
+            @Override
+            protected List<News> doInBackground(Void... params) {
+                List<News> newses = new ArrayList<News>();
+
+                Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc");
+
+                int idColumnIndex = cursor.getColumnIndex(Reader.Newses._ID);
+                int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
+                int linkColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_LINK);
+                int descriptionColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_DESCRIPTION);
+                int pubDateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_PUB_DATE);
+
+                while (cursor.moveToNext()) {
+                    News news = new News();
+                    news.setId(cursor.getInt(idColumnIndex));
+                    news.setTitle(cursor.getString(titleColumnIndex));
+                    news.setLink(cursor.getString(linkColumnIndex));
+                    news.setDescription(cursor.getString(descriptionColumnIndex));
+                    news.setPubDate(cursor.getLong(pubDateColumnIndex));
+
+                    newses.add(news);
+                }
+                cursor.close();
+
+                return newses;
+            }
+
+            @Override
+            protected void onPostExecute(List<News> newses) {
+                for (News news : newses)
+                    MainActivity.this.newsList.add(news);
+                newsArrayAdapter.notifyDataSetChanged();
+            }
+        }.execute();
+    }
+
+    private void readRssFeedsAsyncTask() {
         new AsyncTask<Void, Void, List<RssFeed>>() {
-            private /*static*/ final String[] PROJECTION =
+            private final String[] PROJECTION =
                     new String[] {
                             Reader.Rsses._ID,
                             Reader.Rsses.COLUMN_NAME_TITLE,
@@ -119,79 +224,6 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                 MainActivity.this.rssFeeds = rssFeeds;
             }
         }.execute();
-
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                List<String> rssLinks = new ArrayList<>();
-                for (RssFeed rssFeed : rssFeeds) {
-                    rssLinks.add(rssFeed.getLink());
-                    Log.i(TAG, rssFeed.getLink());
-                }
-
-                new HtmlDownloader(rssLinks, MainActivity.this).execute();
-            }
-        };
-
-        new Timer().schedule(timerTask, 1000, 1000*10);
-    }
-
-    @Override
-    public void onDownloaded(String html) {
-        RssParser rssParser = new RssParser();
-        Rss rss = rssParser.parse(html);
-
-        for (Item item : rss.getChannel().getItems()) {
-            if (isNewsExist(item.getLink()))
-                continue;
-
-            ContentValues values = new ContentValues();
-            values.put(Reader.Newses.COLUMN_NAME_TITLE, item.getTitle());
-            values.put(Reader.Newses.COLUMN_NAME_LINK, item.getLink());
-            values.put(Reader.Newses.COLUMN_NAME_DESCRIPTION, item.getDescription());
-            values.put(Reader.Newses.COLUMN_NAME_PUB_DATE, item.getPubDate());
-
-            readerProvider.insert(values);
-        }
-
-        readNewses();
-    }
-
-    private boolean isNewsExist(String link) {
-        Cursor cursor = readerProvider.query(new String[]{Reader.Newses._ID},
-                String.format("%s=?", Reader.Newses.COLUMN_NAME_LINK),
-                new String[]{link}, null);
-
-        boolean exist = cursor.getCount() > 0;
-        cursor.close();
-
-        return exist;
-    }
-
-    private void readNewses() {
-        newsList.clear();
-
-        Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc");
-
-        int idColumnIndex = cursor.getColumnIndex(Reader.Newses._ID);
-        int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
-        int linkColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_LINK);
-        int descriptionColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_DESCRIPTION);
-        int pubDateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_PUB_DATE);
-
-        while (cursor.moveToNext()) {
-            News news = new News();
-            news.setId(cursor.getInt(idColumnIndex));
-            news.setTitle(cursor.getString(titleColumnIndex));
-            news.setLink(cursor.getString(linkColumnIndex));
-            news.setDescription(cursor.getString(descriptionColumnIndex));
-            news.setPubDate(cursor.getLong(pubDateColumnIndex));
-
-            newsList.add(news);
-        }
-        cursor.close();
-
-        newsArrayAdapter.notifyDataSetChanged();
     }
 
     @Override
