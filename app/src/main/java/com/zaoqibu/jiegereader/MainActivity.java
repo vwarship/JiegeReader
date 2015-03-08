@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,19 +30,16 @@ import java.util.TimerTask;
 
 public class MainActivity extends ActionBarActivity implements HtmlDownloader.HtmlDownloaderListener {
     private static String TAG = "MainActivity";
+    private static final long ONE_SECOND = 1000;
+    private static final long TWO_SECOND = 2000;
+    private static final long ONE_HOUR = ONE_SECOND * 60 * 60;
+    private static final long RSS_DOWNLOAD_DELAY = TWO_SECOND;
+    private static final long RSS_DOWNLOAD_PERIOD = ONE_HOUR;
 
     private List<News> newsList;
     private NewsArrayAdapter newsArrayAdapter;
     private ReaderProvider readerProvider;
-
-    private static final String[] PROJECTION =
-            new String[] {
-                    Reader.Newses._ID,
-                    Reader.Newses.COLUMN_NAME_TITLE,
-                    Reader.Newses.COLUMN_NAME_LINK,
-                    Reader.Newses.COLUMN_NAME_DESCRIPTION,
-                    Reader.Newses.COLUMN_NAME_PUB_DATE
-            };
+    private TimerTask rssDownloadTimerTask;
 
     List<RssFeed> rssFeeds = new ArrayList<>();
 
@@ -68,22 +66,17 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
 
         readerProvider = new ReaderProvider(this);
 
-        readNewsesAsyncTask();
+        readNewsesFirst();
         readRssFeedsAsyncTask();
+        rssDownloadTimerTask = createRssDownloadTimerTask();
 
-        TimerTask timerTask = new TimerTask() {
-            @Override
-            public void run() {
-                List<String> rssLinks = new ArrayList<>();
-                for (RssFeed rssFeed : rssFeeds) {
-                    rssLinks.add(rssFeed.getLink());
-                }
+        new Timer().schedule(rssDownloadTimerTask, RSS_DOWNLOAD_DELAY, RSS_DOWNLOAD_PERIOD);
+    }
 
-                new HtmlDownloader(rssLinks, MainActivity.this).execute();
-            }
-        };
-
-        new Timer().schedule(timerTask, 100000, 1000*10);
+    private void readNewsesFirst() {
+        final int limit = 0;
+        final int offset = 20;
+        readNewsesAsyncTask(limit, offset);
     }
 
     @Override
@@ -96,6 +89,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                 RssParser rssParser = new RssParser();
                 Rss rss = rssParser.parse(html);
 
+                final String channelTitle = rss.getChannel().getTitle();
                 for (Item item : rss.getChannel().getItems()) {
                     if (isNewsExist(item.getLink()))
                         continue;
@@ -103,6 +97,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                     ContentValues values = new ContentValues();
                     values.put(Reader.Newses.COLUMN_NAME_TITLE, item.getTitle());
                     values.put(Reader.Newses.COLUMN_NAME_LINK, item.getLink());
+                    values.put(Reader.Newses.COLUMN_NAME_SOURCE, channelTitle);
                     values.put(Reader.Newses.COLUMN_NAME_DESCRIPTION, item.getDescription());
                     values.put(Reader.Newses.COLUMN_NAME_PUB_DATE, item.getPubDate());
 
@@ -119,7 +114,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
 
             @Override
             protected void onPostExecute(Void aVoid) {
-                readNewsesAsyncTask();
+                readNewsesFirst();
             }
         }.execute(html);
     }
@@ -127,7 +122,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
     private boolean isNewsExist(String link) {
         Cursor cursor = readerProvider.query(new String[]{Reader.Newses._ID},
                 String.format("%s=?", Reader.Newses.COLUMN_NAME_LINK),
-                new String[]{link}, null);
+                new String[]{link}, null, null);
 
         boolean exist = cursor.getCount() > 0;
         cursor.close();
@@ -135,22 +130,34 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
         return exist;
     }
 
-    private void readNewsesAsyncTask() {
+    private void readNewsesAsyncTask(final int limit, final int offset) {
         new AsyncTask<Void, Void, List<News>>() {
+            final String[] PROJECTION =
+                    new String[] {
+                            Reader.Newses._ID,
+                            Reader.Newses.COLUMN_NAME_TITLE,
+                            Reader.Newses.COLUMN_NAME_LINK,
+                            Reader.Newses.COLUMN_NAME_SOURCE,
+                            Reader.Newses.COLUMN_NAME_DESCRIPTION,
+                            Reader.Newses.COLUMN_NAME_PUB_DATE
+                    };
+
             @Override
             protected void onPreExecute() {
-                newsList.clear();
+                if (limit == 0)
+                    newsList.clear();
             }
 
             @Override
             protected List<News> doInBackground(Void... params) {
                 List<News> newses = new ArrayList<News>();
 
-                Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc");
+                Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc", String.format("%d, %d", limit, offset));
 
                 int idColumnIndex = cursor.getColumnIndex(Reader.Newses._ID);
                 int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
                 int linkColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_LINK);
+                int sourceColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_SOURCE);
                 int descriptionColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_DESCRIPTION);
                 int pubDateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_PUB_DATE);
 
@@ -159,6 +166,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                     news.setId(cursor.getInt(idColumnIndex));
                     news.setTitle(cursor.getString(titleColumnIndex));
                     news.setLink(cursor.getString(linkColumnIndex));
+                    news.setSource(cursor.getString(sourceColumnIndex));
                     news.setDescription(cursor.getString(descriptionColumnIndex));
                     news.setPubDate(cursor.getLong(pubDateColumnIndex));
 
@@ -224,6 +232,30 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                 MainActivity.this.rssFeeds = rssFeeds;
             }
         }.execute();
+    }
+
+    private TimerTask createRssDownloadTimerTask() {
+        TimerTask timerTask = new TimerTask() {
+            @Override
+            public void run() {
+                List<String> rssLinks = new ArrayList<>();
+                for (RssFeed rssFeed : rssFeeds) {
+                    rssLinks.add(rssFeed.getLink());
+                    Log.i(TAG, rssFeed.getLink());
+                }
+
+                new HtmlDownloader(rssLinks, MainActivity.this).execute();
+            }
+        };
+
+        return timerTask;
+    }
+
+    @Override
+    protected void onDestroy() {
+        rssDownloadTimerTask.cancel();
+        rssDownloadTimerTask = null;
+        super.onDestroy();
     }
 
     @Override

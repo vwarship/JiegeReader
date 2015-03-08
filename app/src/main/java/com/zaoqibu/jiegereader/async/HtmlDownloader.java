@@ -1,7 +1,6 @@
 package com.zaoqibu.jiegereader.async;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.zaoqibu.jiegereader.util.DateUtil;
 

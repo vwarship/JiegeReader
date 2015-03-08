@@ -39,6 +39,7 @@ public class ReaderProvider {
                     + Reader.Newses._ID + " INTEGER PRIMARY KEY autoincrement,"
                     + Reader.Newses.COLUMN_NAME_TITLE + " TEXT,"
                     + Reader.Newses.COLUMN_NAME_LINK + " TEXT,"
+                    + Reader.Newses.COLUMN_NAME_SOURCE + " TEXT,"
                     + Reader.Newses.COLUMN_NAME_DESCRIPTION + " TEXT,"
                     + Reader.Newses.COLUMN_NAME_PUB_DATE + " INTEGER,"
                     + Reader.Newses.COLUMN_NAME_CREATE_DATE + " INTEGER"
@@ -101,7 +102,7 @@ public class ReaderProvider {
         }
     }
 
-    public Cursor query(String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+    public Cursor query(String[] projection, String selection, String[] selectionArgs, String sortOrder, String limit) {
 
         // Constructs a new query builder and sets its table name
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -124,7 +125,8 @@ public class ReaderProvider {
                 selectionArgs, // The values for the where clause
                 null,          // don't group the rows
                 null,          // don't filter by row groups
-                sortOrder      // The sort order
+                sortOrder,      // The sort order
+                limit
         );
 
         return c;

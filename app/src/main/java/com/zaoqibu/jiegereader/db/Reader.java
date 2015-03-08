@@ -13,6 +13,7 @@ public class Reader {
 
         public static final String COLUMN_NAME_TITLE = "title";
         public static final String COLUMN_NAME_LINK = "link";
+        public static final String COLUMN_NAME_SOURCE = "source";
         public static final String COLUMN_NAME_DESCRIPTION = "description";
         public static final String COLUMN_NAME_PUB_DATE = "pub_date";
         public static final String COLUMN_NAME_CREATE_DATE = "created";

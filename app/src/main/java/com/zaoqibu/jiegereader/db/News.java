@@ -7,6 +7,7 @@ public class News {
     private int id;
     private String title;
     private String link;
+    private String source;
     private String description;
     private long pubDate;
     private long createDate;
@@ -33,6 +34,14 @@ public class News {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 
     public String getDescription() {
