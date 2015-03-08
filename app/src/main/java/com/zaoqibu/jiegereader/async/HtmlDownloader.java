@@ -116,7 +116,6 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
             e.printStackTrace();
         }
 
-        Log.i("TEST", charset.name());
         return charset.name();
     }
 

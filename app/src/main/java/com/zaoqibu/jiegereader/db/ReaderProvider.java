@@ -35,6 +35,9 @@ public class ReaderProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
+            Log.i(TAG, "onCreate.........");
+            long time = System.currentTimeMillis();
+
             db.execSQL("CREATE TABLE " + Reader.Newses.TABLE_NAME + " ("
                     + Reader.Newses._ID + " INTEGER PRIMARY KEY autoincrement,"
                     + Reader.Newses.COLUMN_NAME_TITLE + " TEXT,"
@@ -52,6 +55,8 @@ public class ReaderProvider {
                     + Reader.Rsses.COLUMN_NAME_CREATE_DATE + " INTEGER"
                     + ");");
             initRss(db);
+
+            Log.i(TAG, "onCreate........" + (System.currentTimeMillis()-time));
         }
 
         private void initRss(SQLiteDatabase db) {
@@ -71,6 +76,8 @@ public class ReaderProvider {
                     new Rss("虎嗅网", "http://www.huxiu.com/rss/0.xml", 1),
                     new Rss("互联网_腾讯科技", "http://tech.qq.com/web/webnews/rss_11.xml", 1),
                     new Rss("知乎每日精选", "http://www.zhihu.com/rss", 1),
+                    new Rss("译言-最新译文", "http://feed.yeeyan.org/latest", 1),
+                    new Rss("煎蛋", "http://jandan.net/feed", 0),
                     new Rss("互联网新闻-新浪科技", "http://rss.sina.com.cn/tech/internet/home28.xml", 0)
 //                    new Rss("", "", 0),
             };
@@ -344,5 +351,17 @@ public class ReaderProvider {
             return true;
 
         return false;
+    }
+
+    public int updateRsses(ContentValues values, String where, String[] whereArgs) {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+
+        int count = db.update(
+                Reader.Rsses.TABLE_NAME,
+                values,
+                where,
+                whereArgs);
+
+        return count;
     }
 }

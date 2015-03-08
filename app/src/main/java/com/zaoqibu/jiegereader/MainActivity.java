@@ -67,8 +67,12 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
             }
         });
 
+        long time = System.currentTimeMillis();
         readerProvider = new ReaderProvider(this);
+        Log.i(TAG, "1........."+(System.currentTimeMillis() - time));
+        time = System.currentTimeMillis();
         readNewses();
+        Log.i(TAG, "2........."+(System.currentTimeMillis() - time));
 
         new AsyncTask<Void, Void, List<RssFeed>>() {
             private /*static*/ final String[] PROJECTION =
@@ -122,25 +126,20 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                 List<String> rssLinks = new ArrayList<>();
                 for (RssFeed rssFeed : rssFeeds) {
                     rssLinks.add(rssFeed.getLink());
+                    Log.i(TAG, rssFeed.getLink());
                 }
 
                 new HtmlDownloader(rssLinks, MainActivity.this).execute();
             }
         };
-        new Timer().schedule(timerTask, 3000, 1000*60*10);
+
+        new Timer().schedule(timerTask, 1000, 1000*10);
     }
 
     @Override
     public void onDownloaded(String html) {
         RssParser rssParser = new RssParser();
         Rss rss = rssParser.parse(html);
-
-        Log.i("TEST", "channel item count: "+rss.getChannel().getItems().size());
-
-//        for (Item item : rss.getChannel().getItems()) {
-//            newsArrayAdapter.add(item);
-//        }
-//        newsArrayAdapter.notifyDataSetChanged();
 
         for (Item item : rss.getChannel().getItems()) {
             if (isNewsExist(item.getLink()))

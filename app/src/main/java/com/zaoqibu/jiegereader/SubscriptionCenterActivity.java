@@ -10,13 +10,11 @@ import android.widget.ListView;
 
 import com.zaoqibu.jiegereader.db.Reader;
 import com.zaoqibu.jiegereader.db.ReaderProvider;
-import com.zaoqibu.jiegereader.db.RssFeed;
-
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class SubscriptionCenterActivity extends ActionBarActivity {
+    private static final String TAG = "SubscriptionCenterActivity";
+
     private ListView lvSubscriptionList;
     private ReaderProvider readerProvider;
 
@@ -25,11 +23,14 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_subscription_center);
 
-        readerProvider = new ReaderProvider(this);
         lvSubscriptionList = (ListView)findViewById(R.id.lvSubscriptionList);
 
+        readRssFeedsAsyncTask();
+    }
+
+    private void readRssFeedsAsyncTask() {
         new AsyncTask<Void, Void, Cursor>() {
-            private /*static*/ final String[] PROJECTION =
+            private final String[] PROJECTION =
                     new String[] {
                             Reader.Rsses._ID,
                             Reader.Rsses.COLUMN_NAME_TITLE,
@@ -40,7 +41,8 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
 
             @Override
             protected Cursor doInBackground(Void... params) {
-                List<RssFeed> rssFeeds = new ArrayList<>();
+                if (readerProvider == null)
+                    readerProvider = new ReaderProvider(SubscriptionCenterActivity.this);
 
                 Cursor cursor = readerProvider.queryRsses(PROJECTION, null, null, null);
 
@@ -52,13 +54,19 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
                 super.onPostExecute(cursor);
 
                 SubscriptionCenterAdapter subscriptionCenterAdapter =
-                        new SubscriptionCenterAdapter(SubscriptionCenterActivity.this, cursor, false);
+                        new SubscriptionCenterAdapter(SubscriptionCenterActivity.this, cursor, false, readerProvider);
 
                 lvSubscriptionList.setAdapter(subscriptionCenterAdapter);
             }
+            private long t;
         }.execute();
     }
 
+    @Override
+    protected void onDestroy() {
+        lvSubscriptionList.setAdapter(null);
+        super.onDestroy();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
