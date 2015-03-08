@@ -42,7 +42,8 @@ public class ReaderProvider {
                     + Reader.Newses.COLUMN_NAME_SOURCE + " TEXT,"
                     + Reader.Newses.COLUMN_NAME_DESCRIPTION + " TEXT,"
                     + Reader.Newses.COLUMN_NAME_PUB_DATE + " INTEGER,"
-                    + Reader.Newses.COLUMN_NAME_CREATE_DATE + " INTEGER"
+                    + Reader.Newses.COLUMN_NAME_CREATE_DATE + " INTEGER,"
+                    + Reader.Newses.COLUMN_NAME_RSS_ID + " INTEGER"
                     + ");");
 
             db.execSQL("CREATE TABLE " + Reader.Rsses.TABLE_NAME + " ("

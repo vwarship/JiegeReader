@@ -23,6 +23,7 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_subscription_center);
 
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         lvSubscriptionList = (ListView)findViewById(R.id.lvSubscriptionList);
 
         readRssFeedsAsyncTask();
@@ -85,6 +86,8 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == android.R.id.home) {
+            onBackPressed();
         }
 
         return super.onOptionsItemSelected(item);

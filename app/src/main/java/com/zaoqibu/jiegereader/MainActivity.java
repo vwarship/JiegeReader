@@ -5,13 +5,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewStub;
-import android.widget.AbsListView;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -30,7 +28,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends ActionBarActivity implements HtmlDownloader.HtmlDownloaderListener {
+public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloaderListener {
     private static String TAG = "MainActivity";
     private static final long ONE_SECOND = 1000;
     private static final long TWO_SECOND = 2000;
@@ -46,27 +44,37 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
     List<RssFeed> rssFeeds = new ArrayList<>();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    }
 
-        ListView lvNewses = (ListView)findViewById(R.id.lvNewses);
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_main, container, false);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        ListView lvNewses = (ListView)getView().findViewById(R.id.lvNewses);
 
         newsList = new ArrayList<News>();
-        newsArrayAdapter = new NewsArrayAdapter(this, R.layout.news_list_item, newsList);
+        newsArrayAdapter = new NewsArrayAdapter(this.getActivity(), R.layout.news_list_item, newsList);
         lvNewses.setAdapter(newsArrayAdapter);
         lvNewses.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String url = newsArrayAdapter.getItem(position).getLink();
+                News news = newsArrayAdapter.getItem(position);
 
-                Intent intent = new Intent(MainActivity.this, ShowOriginalArticleActivity.class);
-                intent.putExtra(ShowOriginalArticleActivity.EXTRA_URL, url);
+                Intent intent = new Intent(MainActivity.this.getActivity(), ShowOriginalArticleActivity.class);
+                intent.putExtra(ShowOriginalArticleActivity.EXTRA_TITLE, news.getTitle());
+                intent.putExtra(ShowOriginalArticleActivity.EXTRA_URL, news.getLink());
                 startActivity(intent);
             }
         });
 
-        readerProvider = new ReaderProvider(this);
+        readerProvider = new ReaderProvider(this.getActivity());
 
         readNewsesFirst();
         readRssFeedsAsyncTask();
@@ -81,8 +89,14 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
         readNewsesAsyncTask(limit, offset);
     }
 
+    private int rssFeedId = 0;
+    public void readNewses(int rssFeedId) {
+        this.rssFeedId = rssFeedId;
+        readNewsesFirst();
+    }
+
     @Override
-    public void onDownloaded(String html) {
+    public void onDownloaded(final int rssFeedId, String html) {
         new AsyncTask<String, ContentValues, Void>() {
             @Override
             protected Void doInBackground(String... params) {
@@ -102,6 +116,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
                     values.put(Reader.Newses.COLUMN_NAME_SOURCE, channelTitle);
                     values.put(Reader.Newses.COLUMN_NAME_DESCRIPTION, item.getDescription());
                     values.put(Reader.Newses.COLUMN_NAME_PUB_DATE, item.getPubDate());
+                    values.put(Reader.Newses.COLUMN_NAME_RSS_ID, rssFeedId);
 
                     publishProgress(values);
                 }
@@ -148,7 +163,15 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
             protected List<News> doInBackground(Void... params) {
                 List<News> newses = new ArrayList<>();
 
-                Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc", String.format("%d, %d", limit, offset));
+                // TODO: 暂时显示所有文章
+//                Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc", String.format("%d, %d", limit, offset));
+                String selection = null;
+                String[] selectionArgs = null;
+                if (rssFeedId > 0) {
+                    selection = String.format("%s=?", Reader.Newses.COLUMN_NAME_RSS_ID);
+                    selectionArgs = new String[]{String.valueOf(rssFeedId)};
+                }
+                Cursor cursor = readerProvider.query(PROJECTION, selection, selectionArgs, "pub_date desc", null);
 
                 int idColumnIndex = cursor.getColumnIndex(Reader.Newses._ID);
                 int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
@@ -238,13 +261,7 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                List<String> rssLinks = new ArrayList<>();
-                for (RssFeed rssFeed : rssFeeds) {
-                    rssLinks.add(rssFeed.getLink());
-                    Log.i(TAG, rssFeed.getLink());
-                }
-
-                new HtmlDownloader(rssLinks, MainActivity.this).execute();
+                new HtmlDownloader(rssFeeds, MainActivity.this).execute();
             }
         };
 
@@ -252,33 +269,9 @@ public class MainActivity extends ActionBarActivity implements HtmlDownloader.Ht
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         rssDownloadTimerTask.cancel();
         rssDownloadTimerTask = null;
         super.onDestroy();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_subscription_center) {
-            Intent intent = new Intent(this, SubscriptionCenterActivity.class);
-            startActivity(intent);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }

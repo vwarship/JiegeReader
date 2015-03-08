@@ -17,6 +17,7 @@ public class Reader {
         public static final String COLUMN_NAME_DESCRIPTION = "description";
         public static final String COLUMN_NAME_PUB_DATE = "pub_date";
         public static final String COLUMN_NAME_CREATE_DATE = "created";
+        public static final String COLUMN_NAME_RSS_ID = "rss_id";
     }
 
     public static final class Rsses implements BaseColumns {

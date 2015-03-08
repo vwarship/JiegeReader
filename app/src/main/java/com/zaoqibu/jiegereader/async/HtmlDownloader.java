@@ -2,6 +2,7 @@ package com.zaoqibu.jiegereader.async;
 
 import android.os.AsyncTask;
 
+import com.zaoqibu.jiegereader.db.RssFeed;
 import com.zaoqibu.jiegereader.util.DateUtil;
 
 import org.apache.http.Header;
@@ -31,30 +32,31 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
     private static String TAG = "HtmlDownloader";
 
     public static interface HtmlDownloaderListener {
-        public abstract void onDownloaded(String html);
+        public abstract void onDownloaded(int rssFeedId, String html);
     }
 
     private HtmlDownloaderListener listener;
-    private List<String> rssLinks;
+    private List<RssFeed> rssFeeds;
 
-    public HtmlDownloader(List<String> rssLinks, HtmlDownloaderListener listener) {
-        this.rssLinks = rssLinks;
+    public HtmlDownloader(List<RssFeed> rssFeeds, HtmlDownloaderListener listener) {
+        this.rssFeeds = rssFeeds;
         this.listener = listener;
     }
 
     @Override
     protected Void doInBackground(Void... params) {
-        for (String rssLink : rssLinks) {
-            String html = downloadHtml(rssLink);
-            publishProgress(html);
+        for (RssFeed rssFeed : rssFeeds) {
+            String html = downloadHtml(rssFeed);
+            publishProgress(String.valueOf(rssFeed.getId()), html);
         }
 
         return null;
     }
 
-    private String downloadHtml(String url) {
+    private String downloadHtml(RssFeed rssFeed) {
         String html = "";
 
+        String url = rssFeed.getLink();
         HttpGet request = new HttpGet(url);
         HttpClient client = new DefaultHttpClient();
 
@@ -123,8 +125,9 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
         super.onProgressUpdate(values);
 
         if (!isCancelled()) {
-            String html = values[0];
-            listener.onDownloaded(html);
+            int rssFeedId = Integer.parseInt(values[0]);
+            String html = values[1];
+            listener.onDownloaded(rssFeedId, html);
         }
     }
 

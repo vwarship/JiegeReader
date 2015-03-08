@@ -4,4 +4,8 @@
     <dimen name="activity_vertical_margin">8dp</dimen>
 
     <dimen name="news_list_item_line_spacing">8dp</dimen>
+
+    <!-- Per the design guidelines, navigation drawers should be between 240dp and 320dp:
+         https://developer.android.com/design/patterns/navigation-drawer.html -->
+    <dimen name="navigation_drawer_width">240dp</dimen>
 </resources>

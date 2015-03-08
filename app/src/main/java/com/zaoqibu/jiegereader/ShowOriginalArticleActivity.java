@@ -13,6 +13,7 @@ import android.webkit.WebViewClient;
 
 
 public class ShowOriginalArticleActivity extends ActionBarActivity {
+    public static final String EXTRA_TITLE = "TITLE";
     public static final String EXTRA_URL = "URL";
     private WebView webView;
 
@@ -21,7 +22,10 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_original_article);
 
-        String url = getIntent().getExtras().getString(EXTRA_URL);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        String title = getIntent().getExtras().getString(EXTRA_TITLE);
+        setTitle(title);
 
         webView = (WebView)findViewById(R.id.webView);
 
@@ -50,6 +54,7 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
             }
         });
 
+        String url = getIntent().getExtras().getString(EXTRA_URL);
         webView.loadUrl(url);
     }
 
@@ -86,6 +91,8 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else if (id == android.R.id.home) {
+            onBackPressed();
         }
 
         return super.onOptionsItemSelected(item);
