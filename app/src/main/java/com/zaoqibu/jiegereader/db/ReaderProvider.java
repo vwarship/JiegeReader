@@ -72,6 +72,7 @@ public class ReaderProvider {
                     new Rss("36氪 | 关注互联网创业", "http://www.36kr.com/feed", 1),
                     new Rss("虎嗅网", "http://www.huxiu.com/rss/0.xml", 1),
                     new Rss("互联网_腾讯科技", "http://tech.qq.com/web/webnews/rss_11.xml", 1),
+                    new Rss("雷锋网", "http://www.leiphone.com/feed", 1),
                     new Rss("知乎每日精选", "http://www.zhihu.com/rss", 1),
                     new Rss("译言-最新译文", "http://feed.yeeyan.org/latest", 1),
                     new Rss("煎蛋", "http://jandan.net/feed", 0),
