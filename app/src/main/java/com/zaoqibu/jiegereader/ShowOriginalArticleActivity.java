@@ -11,6 +11,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.zaoqibu.jiegereader.util.Share;
+
 
 public class ShowOriginalArticleActivity extends ActionBarActivity {
     public static final String EXTRA_TITLE = "TITLE";
@@ -89,12 +91,19 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_share) {
+            showShare();
             return true;
         } else if (id == android.R.id.home) {
             onBackPressed();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showShare(){
+        String title = getIntent().getExtras().getString(EXTRA_TITLE);
+        String url = getIntent().getExtras().getString(EXTRA_URL);
+        Share.share(this, title, url);
     }
 }
