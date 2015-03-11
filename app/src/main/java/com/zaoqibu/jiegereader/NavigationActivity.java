@@ -13,6 +13,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 
 public class NavigationActivity extends ActionBarActivity
@@ -138,4 +139,19 @@ public class NavigationActivity extends ActionBarActivity
         }
     }
 
+    private static final long WAIT_TIME_MS = 2000;
+    private long lastPressedTimeMS = 0;
+
+    @Override
+    public void onBackPressed() {
+        final long curTimeMS = System.currentTimeMillis();
+
+        if (curTimeMS - lastPressedTimeMS > WAIT_TIME_MS){
+            Toast.makeText(this, getString(R.string.please_click_back_again_to_exit),
+                    Toast.LENGTH_SHORT).show();
+            lastPressedTimeMS = curTimeMS;
+        } else {
+            super.onBackPressed();
+        }
+    }
 }

@@ -9,4 +9,6 @@
 
     <string name="navigation_all">所有</string>
 
+    <string name="please_click_back_again_to_exit">再按一次，退出程序</string>
+
 </resources>
