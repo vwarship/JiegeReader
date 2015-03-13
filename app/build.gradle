@@ -8,8 +8,8 @@ android {
         applicationId "com.zaoqibu.jiegereader"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 10
-        versionName "0.10.0"
+        versionCode 11
+        versionName "0.11.0"
     }
     buildTypes {
         release {

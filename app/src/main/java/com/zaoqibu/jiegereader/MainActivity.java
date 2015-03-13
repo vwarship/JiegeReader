@@ -26,6 +26,7 @@ import com.zaoqibu.jiegereader.db.RssFeed;
 import com.zaoqibu.jiegereader.rss.Item;
 import com.zaoqibu.jiegereader.rss.Rss;
 import com.zaoqibu.jiegereader.rss.RssParser;
+import com.zaoqibu.jiegereader.util.VibratorUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         ibTop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                VibratorUtil.vibrate(getActivity());
                 lvNewses.setSelectionFromTop(0, 0);
             }
         });
