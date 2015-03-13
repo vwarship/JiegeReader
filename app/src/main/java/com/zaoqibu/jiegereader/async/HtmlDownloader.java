@@ -19,6 +19,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import info.monitorenter.cpdetector.io.ASCIIDetector;
 import info.monitorenter.cpdetector.io.CodepageDetectorProxy;
@@ -28,7 +29,7 @@ import info.monitorenter.cpdetector.io.UnicodeDetector;
 /**
  * Created by vwarship on 2015/3/3.
  */
-public class HtmlDownloader extends AsyncTask<Void, String, Void> {
+public class HtmlDownloader extends AsyncTask<List<RssFeed>, String, Void> {
     private static String TAG = "HtmlDownloader";
 
     public static interface HtmlDownloaderListener {
@@ -36,15 +37,18 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
     }
 
     private HtmlDownloaderListener listener;
-    private List<RssFeed> rssFeeds;
 
-    public HtmlDownloader(List<RssFeed> rssFeeds, HtmlDownloaderListener listener) {
-        this.rssFeeds = rssFeeds;
+    HttpGet request;
+    HttpClient httpClient;
+
+
+    public HtmlDownloader(HtmlDownloaderListener listener) {
         this.listener = listener;
     }
 
     @Override
-    protected Void doInBackground(Void... params) {
+    protected Void doInBackground(List<RssFeed>... params) {
+        List<RssFeed> rssFeeds = params[0];
         for (RssFeed rssFeed : rssFeeds) {
             String html = downloadHtml(rssFeed);
             publishProgress(String.valueOf(rssFeed.getId()), html);
@@ -57,11 +61,11 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
         String html = "";
 
         String url = rssFeed.getLink();
-        HttpGet request = new HttpGet(url);
-        HttpClient client = new DefaultHttpClient();
+        request = new HttpGet(url);
+        httpClient = new DefaultHttpClient();
 
         try {
-            HttpResponse response = client.execute(request);
+            HttpResponse response = httpClient.execute(request);
 //            long getLastModifiedTime = getLastModifiedTime(response);
 
             final int responseCode = response.getStatusLine().getStatusCode();
@@ -128,6 +132,12 @@ public class HtmlDownloader extends AsyncTask<Void, String, Void> {
             int rssFeedId = Integer.parseInt(values[0]);
             String html = values[1];
             listener.onDownloaded(rssFeedId, html);
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

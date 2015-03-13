@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
@@ -28,7 +32,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloaderListener {
+public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloaderListener,
+        SwipeRefreshLayout.OnRefreshListener
+{
     private static String TAG = "MainActivity";
     private static final long ONE_SECOND = 1000;
     private static final long TWO_SECOND = 2000;
@@ -36,12 +42,18 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     private static final long RSS_DOWNLOAD_DELAY = TWO_SECOND;
     private static final long RSS_DOWNLOAD_PERIOD = ONE_HOUR;
 
+    private static final int SHOW_NEWS_COUNT = 20;
+
     private List<News> newsList;
     private NewsArrayAdapter newsArrayAdapter;
     private ReaderProvider readerProvider;
     private TimerTask rssDownloadTimerTask;
 
     List<RssFeed> rssFeeds = new ArrayList<>();
+
+    private HtmlDownloader htmlDownloader;
+
+    SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +68,10 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        swipeRefreshLayout = (SwipeRefreshLayout)getView().findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
 
         ListView lvNewses = (ListView)getView().findViewById(R.id.lvNewses);
 
@@ -74,7 +90,25 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
             }
         });
 
+        lvNewses.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollState == AbsListView.OnScrollListener.SCROLL_STATE_IDLE) {
+                    if (view.getLastVisiblePosition() >= view.getCount() - 1) {
+                        readNewsesAsyncTask(newsList.size()-1, SHOW_NEWS_COUNT);
+                    }
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+            }
+        });
+
         readerProvider = new ReaderProvider(this.getActivity());
+
+        htmlDownloader = new HtmlDownloader(MainActivity.this);
 
         readNewsesFirst();
         readRssFeedsAsyncTask();
@@ -85,7 +119,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
     private void readNewsesFirst() {
         final int limit = 0;
-        final int offset = 20;
+        final int offset = SHOW_NEWS_COUNT;
         readNewsesAsyncTask(limit, offset);
     }
 
@@ -106,6 +140,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                 Rss rss = rssParser.parse(html);
 
                 final String channelTitle = rss.getChannel().getTitle();
+                Log.i(TAG, channelTitle);
                 for (Item item : rss.getChannel().getItems()) {
                     if (isNewsExist(item.getLink()))
                         continue;
@@ -163,15 +198,16 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
             protected List<News> doInBackground(Void... params) {
                 List<News> newses = new ArrayList<>();
 
-                // TODO: 暂时显示所有文章
-//                Cursor cursor = readerProvider.query(PROJECTION, null, null, "pub_date desc", String.format("%d, %d", limit, offset));
                 String selection = null;
                 String[] selectionArgs = null;
                 if (rssFeedId > 0) {
                     selection = String.format("%s=?", Reader.Newses.COLUMN_NAME_RSS_ID);
                     selectionArgs = new String[]{String.valueOf(rssFeedId)};
                 }
-                Cursor cursor = readerProvider.query(PROJECTION, selection, selectionArgs, "pub_date desc", null);
+                Cursor cursor = readerProvider.query(PROJECTION,
+                        selection, selectionArgs,
+                        "pub_date desc",
+                        String.format("%d, %d", limit, offset));
 
                 int idColumnIndex = cursor.getColumnIndex(Reader.Newses._ID);
                 int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
@@ -206,7 +242,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
                 newsArrayAdapter.notifyDataSetChanged();
             }
-        }.execute();
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     private void readRssFeedsAsyncTask() {
@@ -261,7 +297,10 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                new HtmlDownloader(rssFeeds, MainActivity.this).execute();
+                if (htmlDownloader.getStatus() != AsyncTask.Status.RUNNING) {
+                    htmlDownloader = new HtmlDownloader(MainActivity.this);
+                    htmlDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rssFeeds);
+                }
             }
         };
 
@@ -273,5 +312,21 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         rssDownloadTimerTask.cancel();
         rssDownloadTimerTask = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void onRefresh() {
+        if (htmlDownloader.getStatus() == AsyncTask.Status.RUNNING) {
+            swipeRefreshLayout.setRefreshing(false);
+        } else {
+            htmlDownloader = new HtmlDownloader(this);
+            htmlDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rssFeeds);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    swipeRefreshLayout.setRefreshing(false);
+                }
+            }, 5000);
+        }
     }
 }

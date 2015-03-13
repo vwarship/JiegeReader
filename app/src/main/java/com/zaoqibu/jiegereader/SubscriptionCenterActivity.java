@@ -60,7 +60,7 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
                 lvSubscriptionList.setAdapter(subscriptionCenterAdapter);
             }
             private long t;
-        }.execute();
+        }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
     @Override
