@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.zaoqibu.jiegereader.async.HtmlDownloader;
@@ -49,11 +50,11 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     private ReaderProvider readerProvider;
     private TimerTask rssDownloadTimerTask;
 
-    List<RssFeed> rssFeeds = new ArrayList<>();
+    private List<RssFeed> rssFeeds = new ArrayList<>();
 
     private HtmlDownloader htmlDownloader;
 
-    SwipeRefreshLayout swipeRefreshLayout;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,7 +74,14 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
 
-        ListView lvNewses = (ListView)getView().findViewById(R.id.lvNewses);
+        final ListView lvNewses = (ListView)getView().findViewById(R.id.lvNewses);
+        final ImageButton ibTop = (ImageButton)getView().findViewById(R.id.ibTop);
+        ibTop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lvNewses.setSelectionFromTop(0, 0);
+            }
+        });
 
         newsList = new ArrayList<News>();
         newsArrayAdapter = new NewsArrayAdapter(this.getActivity(), R.layout.news_list_item, newsList);
@@ -102,7 +110,14 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                // 避免出现闪烁
+                if (firstVisibleItem == visibleItemCount)
+                    return;
 
+                if (firstVisibleItem > visibleItemCount)
+                    ibTop.setVisibility(View.VISIBLE);
+                else
+                    ibTop.setVisibility(View.INVISIBLE);
             }
         });
 

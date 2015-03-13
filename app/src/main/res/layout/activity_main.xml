@@ -18,4 +18,16 @@
 
     </android.support.v4.widget.SwipeRefreshLayout>
 
+    <ImageButton
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:id="@+id/ibTop"
+        android:src="@mipmap/ic_top"
+        android:background="@drawable/top_selector"
+        android:visibility="invisible"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/swipe_refresh_layout"
+        android:layout_alignEnd="@+id/swipe_refresh_layout"
+        android:layout_marginBottom="@dimen/activity_vertical_margin" />
+
 </RelativeLayout>
