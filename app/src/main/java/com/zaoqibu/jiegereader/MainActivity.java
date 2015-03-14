@@ -1,8 +1,10 @@
 package com.zaoqibu.jiegereader;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,7 +43,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     private static final long ONE_SECOND = 1000;
     private static final long TWO_SECOND = 2000;
     private static final long ONE_HOUR = ONE_SECOND * 60 * 60;
-    private static final long RSS_DOWNLOAD_DELAY = TWO_SECOND;
+    private static final long RSS_DOWNLOAD_DELAY = ONE_HOUR;
     private static final long RSS_DOWNLOAD_PERIOD = ONE_HOUR;
 
     private static final int SHOW_NEWS_COUNT = 20;
@@ -49,7 +51,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     private List<News> newsList;
     private NewsArrayAdapter newsArrayAdapter;
     private ReaderProvider readerProvider;
-    private TimerTask rssDownloadTimerTask;
+    private Timer rssDownloadTimer;
 
     private List<RssFeed> rssFeeds = new ArrayList<>();
 
@@ -70,7 +72,6 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         swipeRefreshLayout = (SwipeRefreshLayout)getView().findViewById(R.id.swipe_refresh_layout);
         swipeRefreshLayout.setOnRefreshListener(this);
         swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
@@ -129,9 +130,19 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
         readNewsesFirst();
         readRssFeedsAsyncTask();
-        rssDownloadTimerTask = createRssDownloadTimerTask();
 
-        new Timer().schedule(rssDownloadTimerTask, RSS_DOWNLOAD_DELAY, RSS_DOWNLOAD_PERIOD);
+        executeRssDownloadTaskWithOneHour();
+        executeRssDownloadTaskWithNow();
+    }
+
+    private void executeRssDownloadTaskWithOneHour() {
+        rssDownloadTimer = new Timer();
+        rssDownloadTimer.schedule(createRssDownloadTimerTask(), RSS_DOWNLOAD_DELAY, RSS_DOWNLOAD_PERIOD);
+    }
+
+    private void executeRssDownloadTaskWithNow() {
+        // 立即执行一次任务，这个时间最少是1000。
+        new Timer().schedule(createRssDownloadTimerTask(), ONE_SECOND);
     }
 
     private void readNewsesFirst() {
@@ -157,7 +168,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                 Rss rss = rssParser.parse(html);
 
                 final String channelTitle = rss.getChannel().getTitle();
-                Log.i(TAG, channelTitle);
+                Log.i(TAG, String.format("Channel Title: %s", channelTitle==null ? "null" : channelTitle));
                 for (Item item : rss.getChannel().getItems()) {
                     if (isNewsExist(item.getLink()))
                         continue;
@@ -314,9 +325,15 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         TimerTask timerTask = new TimerTask() {
             @Override
             public void run() {
-                if (htmlDownloader.getStatus() != AsyncTask.Status.RUNNING) {
-                    htmlDownloader = new HtmlDownloader(MainActivity.this);
-                    htmlDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rssFeeds);
+                ConnectivityManager con=(ConnectivityManager)getActivity().getSystemService(Activity.CONNECTIVITY_SERVICE);
+                boolean wifi=con.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnectedOrConnecting();
+                boolean internet=con.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting();
+
+                if (wifi || internet) {
+                    if (htmlDownloader.getStatus() != AsyncTask.Status.RUNNING) {
+                        htmlDownloader = new HtmlDownloader(MainActivity.this);
+                        htmlDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rssFeeds);
+                    }
                 }
             }
         };
@@ -326,8 +343,8 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
     @Override
     public void onDestroy() {
-        rssDownloadTimerTask.cancel();
-        rssDownloadTimerTask = null;
+        rssDownloadTimer.cancel();
+        rssDownloadTimer = null;
         super.onDestroy();
     }
 
@@ -336,8 +353,8 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         if (htmlDownloader.getStatus() == AsyncTask.Status.RUNNING) {
             swipeRefreshLayout.setRefreshing(false);
         } else {
-            htmlDownloader = new HtmlDownloader(this);
-            htmlDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rssFeeds);
+            executeRssDownloadTaskWithNow();
+
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
