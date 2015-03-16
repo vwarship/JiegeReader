@@ -166,7 +166,6 @@ public class NavigationDrawerFragment extends Fragment {
 
                 rssFeedAdapter.notifyDataSetChanged();
             }
-            private long t;
         }.execute();
     }
 

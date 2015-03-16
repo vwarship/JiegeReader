@@ -51,7 +51,8 @@ public class ReaderProvider {
                     + Reader.Rsses.COLUMN_NAME_TITLE + " TEXT,"
                     + Reader.Rsses.COLUMN_NAME_LINK + " TEXT,"
                     + Reader.Rsses.COLUMN_NAME_IS_FEED + " INTEGER default 0,"
-                    + Reader.Rsses.COLUMN_NAME_CREATE_DATE + " INTEGER"
+                    + Reader.Rsses.COLUMN_NAME_CREATE_DATE + " INTEGER,"
+                    + Reader.Rsses.COLUMN_NAME_UPDATE_DATE + " INTEGER"
                     + ");");
             initRss(db);
         }
