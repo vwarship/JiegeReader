@@ -293,6 +293,10 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
+    public void updateRssFeeds() {
+        readRssFeedsAsyncTask();
+    }
+
     private void readRssFeedsAsyncTask() {
         new AsyncTask<Void, Void, List<RssFeed>>() {
             private final String[] PROJECTION =

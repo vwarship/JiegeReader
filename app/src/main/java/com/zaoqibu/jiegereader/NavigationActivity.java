@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 public class NavigationActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+    private static final int ACTION_SUBSCRIPTION_CENTER = 1;
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -89,11 +90,18 @@ public class NavigationActivity extends ActionBarActivity
             return true;
         } else if (id == R.id.action_subscription_center) {
             Intent intent = new Intent(this, SubscriptionCenterActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, ACTION_SUBSCRIPTION_CENTER);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == ACTION_SUBSCRIPTION_CENTER && resultCode == RESULT_OK) {
+            newsFragment.updateRssFeeds();
+        }
     }
 
     /**

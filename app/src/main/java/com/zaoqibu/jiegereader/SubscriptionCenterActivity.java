@@ -24,7 +24,7 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
         setContentView(R.layout.activity_subscription_center);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        lvSubscriptionList = (ListView)findViewById(R.id.lvSubscriptionList);
+        lvSubscriptionList = (ListView) findViewById(R.id.lvSubscriptionList);
 
         readRssFeedsAsyncTask();
     }
@@ -32,7 +32,7 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
     private void readRssFeedsAsyncTask() {
         new AsyncTask<Void, Void, Cursor>() {
             private final String[] PROJECTION =
-                    new String[] {
+                    new String[]{
                             Reader.Rsses._ID,
                             Reader.Rsses.COLUMN_NAME_TITLE,
                             Reader.Rsses.COLUMN_NAME_LINK,
@@ -59,6 +59,7 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
 
                 lvSubscriptionList.setAdapter(subscriptionCenterAdapter);
             }
+
             private long t;
         }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -91,5 +92,11 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        setResult(RESULT_OK);
+        super.onBackPressed();
     }
 }
