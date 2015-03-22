@@ -35,7 +35,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 
-public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloaderListener,
+public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloaderListener,
         SwipeRefreshLayout.OnRefreshListener
 {
     private static String TAG = "MainActivity";
@@ -65,7 +65,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.activity_main, container, false);
+        return inflater.inflate(R.layout.fragment_news, container, false);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 News news = newsArrayAdapter.getItem(position);
 
-                Intent intent = new Intent(MainActivity.this.getActivity(), ShowOriginalArticleActivity.class);
+                Intent intent = new Intent(NewsFragment.this.getActivity(), ShowOriginalArticleActivity.class);
                 intent.putExtra(ShowOriginalArticleActivity.EXTRA_TITLE, news.getTitle());
                 intent.putExtra(ShowOriginalArticleActivity.EXTRA_URL, news.getLink());
                 startActivity(intent);
@@ -127,7 +127,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
         readerProvider = new ReaderProvider(this.getActivity());
 
-        htmlDownloader = new HtmlDownloader(MainActivity.this);
+        htmlDownloader = new HtmlDownloader(NewsFragment.this);
 
         readNewsesFirst();
         readRssFeedsAsyncTask();
@@ -143,7 +143,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
     private void executeRssDownloadTaskWithNow() {
         // 立即执行一次任务，这个时间最少是1000。
-        new Timer().schedule(createRssDownloadTimerTask(), ONE_SECOND);
+        new Timer().schedule(createRssDownloadTimerTask(), TWO_SECOND);
     }
 
     private void readNewsesFirst() {
@@ -283,10 +283,10 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
             @Override
             protected void onPostExecute(List<News> newses) {
                 if (limit == 0)
-                    MainActivity.this.newsList.clear();
+                    NewsFragment.this.newsList.clear();
 
                 for (News news : newses)
-                    MainActivity.this.newsList.add(news);
+                    NewsFragment.this.newsList.add(news);
 
                 newsArrayAdapter.notifyDataSetChanged();
             }
@@ -336,7 +336,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
             @Override
             protected void onPostExecute(List<RssFeed> rssFeeds) {
-                MainActivity.this.rssFeeds = rssFeeds;
+                NewsFragment.this.rssFeeds = rssFeeds;
             }
         }.execute();
     }
@@ -351,7 +351,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
 
                 if (wifi || internet) {
                     if (htmlDownloader.getStatus() != AsyncTask.Status.RUNNING) {
-                        htmlDownloader = new HtmlDownloader(MainActivity.this);
+                        htmlDownloader = new HtmlDownloader(NewsFragment.this);
                         htmlDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, rssFeeds);
                     }
                 }

@@ -22,25 +22,23 @@ public class NavigationActivity extends ActionBarActivity
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
      */
-    private MainActivity mainActivity;
+    private NewsFragment newsFragment;
     private NavigationDrawerFragment mNavigationDrawerFragment;
 
     /**
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
-    private CharSequence mTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
-        mainActivity = (MainActivity)
+        newsFragment = (NewsFragment)
                 getSupportFragmentManager().findFragmentById(R.id.container);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getSupportFragmentManager().findFragmentById(R.id.navigation_drawer);
-        mTitle = getTitle();
 
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
@@ -58,13 +56,12 @@ public class NavigationActivity extends ActionBarActivity
     }
 
     public void onSectionAttached(int rssFeedId) {
-        mainActivity.readNewses(rssFeedId);
+        newsFragment.readNewses(rssFeedId);
     }
 
     public void restoreActionBar() {
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayShowTitleEnabled(true);
-        actionBar.setTitle(mTitle);
     }
 
     @Override
