@@ -204,7 +204,7 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
 
             @Override
             protected void onProgressUpdate(ContentValues... values) {
-                readerProvider.insert(values[0]);
+                readerProvider.insertNews(values[0]);
             }
 
             @Override
@@ -215,7 +215,7 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
     }
 
     private boolean isNewsExist(String link) {
-        Cursor cursor = readerProvider.query(new String[]{Reader.Newses._ID},
+        Cursor cursor = readerProvider.queryNews(new String[]{Reader.Newses._ID},
                 String.format("%s=?", Reader.Newses.COLUMN_NAME_LINK),
                 new String[]{link}, null, null);
 
@@ -244,17 +244,22 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
                 String selection = null;
                 String[] selectionArgs = null;
                 if (rssFeedId > 0) {
-                    selection = String.format("%s=? AND %s NOT IN (?)",
-                            Reader.Newses.COLUMN_NAME_RSS_ID, Reader.Newses.COLUMN_NAME_STATE);
-                    selectionArgs = new String[]{String.valueOf(rssFeedId), String.valueOf(Reader.Newses.StateValue.Deleted.getValue())};
+                    selection = String.format(" %s IN (?, ?) AND %s=? ",
+                            Reader.Newses.COLUMN_NAME_STATE, Reader.Newses.COLUMN_NAME_RSS_ID);
+                    selectionArgs = new String[]{
+                            String.valueOf(Reader.Newses.StateValue.Unread.getValue()),
+                            String.valueOf(Reader.Newses.StateValue.Readed.getValue()),
+                            String.valueOf(rssFeedId)};
                 } else {
-                    selection = String.format("%s NOT IN (?)",
+                    selection = String.format("%s IN (?, ?)",
                             Reader.Newses.COLUMN_NAME_STATE);
-                    selectionArgs = new String[]{String.valueOf(Reader.Newses.StateValue.Deleted.getValue())};
+                    selectionArgs = new String[]{
+                            String.valueOf(Reader.Newses.StateValue.Unread.getValue()),
+                            String.valueOf(Reader.Newses.StateValue.Readed.getValue())};
                 }
-                Cursor cursor = readerProvider.query(PROJECTION,
+                Cursor cursor = readerProvider.queryNews(PROJECTION,
                         selection, selectionArgs,
-                        "pub_date desc",
+                        Reader.Newses.COLUMN_NAME_PUB_DATE + " desc",
                         String.format("%d, %d", limit, offset));
 
                 int idColumnIndex = cursor.getColumnIndex(Reader.Newses._ID);

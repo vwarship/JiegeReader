@@ -46,6 +46,9 @@ public class ReaderProvider {
                     + Reader.Newses.COLUMN_NAME_STATE + " INTEGER,"
                     + Reader.Newses.COLUMN_NAME_RSS_ID + " INTEGER"
                     + ");");
+            db.execSQL(String.format("CREATE INDEX i_link on %s (%s);", Reader.Newses.TABLE_NAME, Reader.Newses.COLUMN_NAME_LINK));
+            db.execSQL(String.format("CREATE INDEX i_state_pubdate on %s (%s, %s);", Reader.Newses.TABLE_NAME, Reader.Newses.COLUMN_NAME_STATE, Reader.Newses.COLUMN_NAME_PUB_DATE));
+            db.execSQL(String.format("CREATE INDEX i_state_rssid_pubdate on %s (%s, %s, %s);", Reader.Newses.TABLE_NAME, Reader.Newses.COLUMN_NAME_STATE, Reader.Newses.COLUMN_NAME_RSS_ID, Reader.Newses.COLUMN_NAME_PUB_DATE));
 
             db.execSQL("CREATE TABLE " + Reader.Rsses.TABLE_NAME + " ("
                     + Reader.Rsses._ID + " INTEGER PRIMARY KEY autoincrement,"
@@ -55,6 +58,8 @@ public class ReaderProvider {
                     + Reader.Rsses.COLUMN_NAME_CREATE_DATE + " INTEGER,"
                     + Reader.Rsses.COLUMN_NAME_UPDATE_DATE + " INTEGER"
                     + ");");
+            db.execSQL(String.format("CREATE INDEX i_isfeed on %s (%s);", Reader.Rsses.TABLE_NAME, Reader.Rsses.COLUMN_NAME_IS_FEED));
+
             initRss(db);
         }
 
@@ -111,7 +116,7 @@ public class ReaderProvider {
         }
     }
 
-    public Cursor query(String[] projection, String selection, String[] selectionArgs, String sortOrder, String limit) {
+    public Cursor queryNews(String[] projection, String selection, String[] selectionArgs, String sortOrder, String limit) {
 
         // Constructs a new query builder and sets its table name
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -141,7 +146,7 @@ public class ReaderProvider {
         return c;
     }
 
-    public boolean insert(ContentValues values) {
+    public boolean insertNews(ContentValues values) {
         if (values == null)
             return false;
 
