@@ -71,9 +71,7 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        swipeRefreshLayout = (SwipeRefreshLayout)getView().findViewById(R.id.swipe_refresh_layout);
-        swipeRefreshLayout.setOnRefreshListener(this);
-        swipeRefreshLayout.setColorSchemeResources(android.R.color.holo_blue_bright);
+        initSwipeRefreshLayout();
 
         final ListView lvNewses = (ListView)getView().findViewById(R.id.lvNewses);
         final ImageButton ibTop = (ImageButton)getView().findViewById(R.id.ibTop);
@@ -132,18 +130,13 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
         readNewsesFirst();
         readRssFeedsAsyncTask();
 
-        executeRssDownloadTaskWithOneHour();
-        executeRssDownloadTaskWithNow();
+        executeRssDownloadTaskWithOneHourSchedule();
+        executeRssDownloadTaskWithAuto();
     }
 
-    private void executeRssDownloadTaskWithOneHour() {
+    private void executeRssDownloadTaskWithOneHourSchedule() {
         rssDownloadTimer = new Timer();
         rssDownloadTimer.schedule(createRssDownloadTimerTask(), RSS_DOWNLOAD_DELAY, RSS_DOWNLOAD_PERIOD);
-    }
-
-    private void executeRssDownloadTaskWithNow() {
-        // 立即执行一次任务，这个时间最少是1000。
-        new Timer().schedule(createRssDownloadTimerTask(), TWO_SECOND);
     }
 
     private void readNewsesFirst() {
@@ -377,6 +370,16 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
         super.onDestroy();
     }
 
+    private void initSwipeRefreshLayout() {
+        swipeRefreshLayout = (SwipeRefreshLayout)getView().findViewById(R.id.swipe_refresh_layout);
+        swipeRefreshLayout.setOnRefreshListener(this);
+        swipeRefreshLayout.setColorSchemeResources(
+                android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
+    }
+
     @Override
     public void onRefresh() {
         if (htmlDownloader.getStatus() == AsyncTask.Status.RUNNING) {
@@ -391,5 +394,16 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
                 }
             }, 5000);
         }
+    }
+
+    private void executeRssDownloadTaskWithNow() {
+        // 立即执行一次任务，这个时间最少是1000。
+        new Timer().schedule(createRssDownloadTimerTask(), TWO_SECOND);
+    }
+
+    private void executeRssDownloadTaskWithAuto() {
+        swipeRefreshLayout.setProgressViewOffset(false, 0, getResources().getDisplayMetrics().heightPixels/3);
+        swipeRefreshLayout.setRefreshing(true);
+        onRefresh();
     }
 }
