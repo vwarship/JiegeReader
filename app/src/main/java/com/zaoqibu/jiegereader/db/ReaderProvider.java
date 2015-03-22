@@ -71,14 +71,20 @@ public class ReaderProvider {
             }
 
             Rss[] rsses = {
-                    new Rss("36氪 | 关注互联网创业", "http://www.36kr.com/feed", 1),
-                    new Rss("虎嗅网", "http://www.huxiu.com/rss/0.xml", 1),
-                    new Rss("互联网_腾讯科技", "http://tech.qq.com/web/webnews/rss_11.xml", 1),
-                    new Rss("雷锋网", "http://www.leiphone.com/feed", 1),
+                    new Rss("互联网创业-36氪", "http://www.36kr.com/feed", 1),
+                    new Rss("互联网-腾讯", "http://tech.qq.com/web/rss_web.xml", 1),
+                    new Rss("新闻国内-腾讯", "http://news.qq.com/newsgn/rss_newsgn.xml", 1),
+                    new Rss("国内新闻-人民网", "http://www.people.com.cn/rss/politics.xml", 1),
+                    new Rss("国际新闻-人民网", "http://www.people.com.cn/rss/world.xml", 1),
+                    new Rss("人人都是产品经理", "http://www.woshipm.com/feed", 1),
+                    new Rss("InfoQ", "http://www.infoq.com/cn/feed", 1),
+                    new Rss("开源中国", "http://www.oschina.net/news/rss", 1),
                     new Rss("知乎每日精选", "http://www.zhihu.com/rss", 1),
-                    new Rss("译言-最新译文", "http://feed.yeeyan.org/latest", 1),
+                    new Rss("虎嗅网", "http://www.huxiu.com/rss/0.xml", 0),
+                    new Rss("雷锋网", "http://www.leiphone.com/feed", 0),
+                    new Rss("译言-最新译文", "http://feed.yeeyan.org/latest", 0),
                     new Rss("煎蛋", "http://jandan.net/feed", 0),
-                    new Rss("互联网新闻-新浪科技", "http://rss.sina.com.cn/tech/internet/home28.xml", 0)
+                    new Rss("互联网新闻-新浪", "http://rss.sina.com.cn/tech/internet/home28.xml", 0)
 //                    new Rss("", "", 0),
             };
 

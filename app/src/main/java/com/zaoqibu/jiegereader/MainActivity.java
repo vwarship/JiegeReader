@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -174,7 +173,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
     }
 
     @Override
-    public void onDownloaded(final int rssFeedId, String html) {
+    public void onDownloaded(final RssFeed rssFeed, final String html) {
         new AsyncTask<String, ContentValues, Void>() {
             @Override
             protected Void doInBackground(String... params) {
@@ -185,8 +184,6 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                 RssParser rssParser = new RssParser();
                 Rss rss = rssParser.parse(html);
 
-                final String channelTitle = rss.getChannel().getTitle();
-                Log.i(TAG, String.format("Channel Title: %s", channelTitle==null ? "null" : channelTitle));
                 for (Item item : rss.getChannel().getItems()) {
                     if (isNewsExist(item.getLink()))
                         continue;
@@ -194,10 +191,10 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                     ContentValues values = new ContentValues();
                     values.put(Reader.Newses.COLUMN_NAME_TITLE, item.getTitle());
                     values.put(Reader.Newses.COLUMN_NAME_LINK, item.getLink());
-                    values.put(Reader.Newses.COLUMN_NAME_SOURCE, channelTitle);
+                    values.put(Reader.Newses.COLUMN_NAME_SOURCE, rssFeed.getTitle());
                     values.put(Reader.Newses.COLUMN_NAME_DESCRIPTION, item.getDescription());
                     values.put(Reader.Newses.COLUMN_NAME_PUB_DATE, item.getPubDate());
-                    values.put(Reader.Newses.COLUMN_NAME_RSS_ID, rssFeedId);
+                    values.put(Reader.Newses.COLUMN_NAME_RSS_ID, rssFeed.getId());
 
                     publishProgress(values);
                 }

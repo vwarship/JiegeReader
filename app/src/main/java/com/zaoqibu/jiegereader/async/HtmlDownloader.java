@@ -27,11 +27,11 @@ import info.monitorenter.cpdetector.io.UnicodeDetector;
 /**
  * Created by vwarship on 2015/3/3.
  */
-public class HtmlDownloader extends AsyncTask<List<RssFeed>, String, Void> {
+public class HtmlDownloader extends AsyncTask<List<RssFeed>, Object, Void> {
     private static String TAG = "HtmlDownloader";
 
     public static interface HtmlDownloaderListener {
-        public abstract void onDownloaded(int rssFeedId, String html);
+        public abstract void onDownloaded(final RssFeed rssFeed, final String html);
     }
 
     private HtmlDownloaderListener listener;
@@ -49,7 +49,7 @@ public class HtmlDownloader extends AsyncTask<List<RssFeed>, String, Void> {
         List<RssFeed> rssFeeds = params[0];
         for (RssFeed rssFeed : rssFeeds) {
             String html = downloadHtml(rssFeed);
-            publishProgress(String.valueOf(rssFeed.getId()), html);
+            publishProgress(rssFeed, html);
         }
 
         return null;
@@ -107,13 +107,14 @@ public class HtmlDownloader extends AsyncTask<List<RssFeed>, String, Void> {
     }
 
     @Override
-    protected void onProgressUpdate(String... values) {
+    protected void onProgressUpdate(Object... values) {
         super.onProgressUpdate(values);
 
         if (!isCancelled()) {
-            int rssFeedId = Integer.parseInt(values[0]);
-            String html = values[1];
-            listener.onDownloaded(rssFeedId, html);
+            RssFeed rssFeed = (RssFeed)values[0];
+            String html = (String)values[1];
+
+            listener.onDownloaded(rssFeed, html);
 
             try {
                 TimeUnit.MILLISECONDS.sleep(500);
