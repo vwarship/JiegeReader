@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zaoqibu.jiegereader.db.News;
 import com.zaoqibu.jiegereader.db.Reader;
 import com.zaoqibu.jiegereader.db.ReaderProvider;
@@ -69,6 +70,8 @@ public class NewsArrayAdapter extends ArrayAdapter<News> {
                     NewsArrayAdapter.this.remove(NewsArrayAdapter.this.getItem(position));
                     NewsArrayAdapter.this.notifyDataSetChanged();
                 }
+
+                MobclickAgent.onEvent(getContext(), "delete_news");
             }
         });
 

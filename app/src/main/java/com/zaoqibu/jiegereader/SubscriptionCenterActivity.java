@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zaoqibu.jiegereader.db.Reader;
 import com.zaoqibu.jiegereader.db.ReaderProvider;
 
@@ -98,5 +99,17 @@ public class SubscriptionCenterActivity extends ActionBarActivity {
     public void onBackPressed() {
         setResult(RESULT_OK);
         super.onBackPressed();
+    }
+
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onPageStart(TAG);
+        MobclickAgent.onResume(this);
+    }
+
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPageEnd(TAG);
+        MobclickAgent.onPause(this);
     }
 }

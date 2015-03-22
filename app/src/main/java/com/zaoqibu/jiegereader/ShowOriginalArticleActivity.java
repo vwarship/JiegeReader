@@ -11,10 +11,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zaoqibu.jiegereader.util.Share;
 
 
 public class ShowOriginalArticleActivity extends ActionBarActivity {
+    private static final String TAG = "ShowOriginalArticleActivity";
     public static final String EXTRA_TITLE = "TITLE";
     public static final String EXTRA_URL = "URL";
     private WebView webView;
@@ -105,5 +107,19 @@ public class ShowOriginalArticleActivity extends ActionBarActivity {
         String title = getIntent().getExtras().getString(EXTRA_TITLE);
         String url = getIntent().getExtras().getString(EXTRA_URL);
         Share.share(this, title, url);
+
+        MobclickAgent.onEvent(this, "share_news");
+    }
+
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onPageStart(TAG);
+        MobclickAgent.onResume(this);
+    }
+
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPageEnd(TAG);
+        MobclickAgent.onPause(this);
     }
 }

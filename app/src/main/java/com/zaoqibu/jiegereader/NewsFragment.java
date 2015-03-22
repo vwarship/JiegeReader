@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zaoqibu.jiegereader.async.HtmlDownloader;
 import com.zaoqibu.jiegereader.db.News;
 import com.zaoqibu.jiegereader.db.Reader;
@@ -39,7 +39,7 @@ import java.util.TimerTask;
 public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloaderListener,
         SwipeRefreshLayout.OnRefreshListener
 {
-    private static String TAG = "MainActivity";
+    private static final String TAG = "NewsFragment";
     private static final long ONE_SECOND = 1000;
     private static final long TWO_SECOND = 2000;
     private static final long ONE_MINUTE = ONE_SECOND * 60;
@@ -101,6 +101,8 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
                 startActivity(intent);
 
                 updateNewsStateWithReaded(news);
+
+                MobclickAgent.onEvent(NewsFragment.this.getActivity(), "read_news");
             }
         });
 
@@ -427,5 +429,15 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
                 }.execute();
             }
         }, ONE_MINUTE);
+    }
+
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onPageStart(TAG);
+    }
+
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPageEnd(TAG);
     }
 }

@@ -15,6 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.umeng.analytics.MobclickAgent;
+
 
 public class NavigationActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks {
@@ -45,6 +47,10 @@ public class NavigationActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        MobclickAgent.setDebugMode(true);
+        MobclickAgent.updateOnlineConfig(this);
+        MobclickAgent.openActivityDurationTrack(false);
     }
 
     @Override
@@ -91,6 +97,8 @@ public class NavigationActivity extends ActionBarActivity
         } else if (id == R.id.action_subscription_center) {
             Intent intent = new Intent(this, SubscriptionCenterActivity.class);
             startActivityForResult(intent, ACTION_SUBSCRIPTION_CENTER);
+
+            MobclickAgent.onEvent(this, "subscription_center");
             return true;
         }
 
@@ -158,5 +166,14 @@ public class NavigationActivity extends ActionBarActivity
         } else {
             super.onBackPressed();
         }
+    }
+
+    public void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
     }
 }

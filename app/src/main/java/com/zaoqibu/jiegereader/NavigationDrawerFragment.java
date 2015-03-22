@@ -23,6 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zaoqibu.jiegereader.db.Reader;
 import com.zaoqibu.jiegereader.db.ReaderProvider;
 
@@ -35,6 +36,7 @@ import java.util.List;
  * design guidelines</a> for a complete explanation of the behaviors implemented here.
  */
 public class NavigationDrawerFragment extends Fragment {
+    private static final String TAG = "NavigationDrawerFragment";
 
     /**
      * Remember the position of the selected item.
@@ -93,12 +95,6 @@ public class NavigationDrawerFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         // Indicate that this fragment would like to influence the set of actions in the action bar.
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        readRssFeedsAsyncTask();
     }
 
     @Override
@@ -333,5 +329,17 @@ public class NavigationDrawerFragment extends Fragment {
          * Called when an item in the navigation drawer is selected.
          */
         void onNavigationDrawerItemSelected(int position);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        readRssFeedsAsyncTask();
+        MobclickAgent.onPageStart(TAG);
+    }
+
+    public void onPause() {
+        super.onPause();
+        MobclickAgent.onPageEnd(TAG);
     }
 }
