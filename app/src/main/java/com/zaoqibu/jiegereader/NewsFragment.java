@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +42,10 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
     private static String TAG = "MainActivity";
     private static final long ONE_SECOND = 1000;
     private static final long TWO_SECOND = 2000;
-    private static final long ONE_HOUR = ONE_SECOND * 60 * 60;
+    private static final long ONE_MINUTE = ONE_SECOND * 60;
+    private static final long ONE_HOUR = ONE_MINUTE * 60;
+    private static final long ONE_DAY = ONE_HOUR * 24;
+    private static final long THREE_DAY = ONE_DAY * 3;
     private static final long RSS_DOWNLOAD_DELAY = ONE_HOUR;
     private static final long RSS_DOWNLOAD_PERIOD = ONE_HOUR;
 
@@ -131,7 +135,9 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
         readRssFeedsAsyncTask();
 
         executeRssDownloadTaskWithOneHourSchedule();
-        executeRssDownloadTaskWithAuto();
+        autoExecuteRssDownloadTask();
+
+        autoDeleteNewsWithOld();
     }
 
     private void executeRssDownloadTaskWithOneHourSchedule() {
@@ -385,7 +391,7 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
         if (htmlDownloader.getStatus() == AsyncTask.Status.RUNNING) {
             swipeRefreshLayout.setRefreshing(false);
         } else {
-            executeRssDownloadTaskWithNow();
+            nowExecuteRssDownloadTask();
 
             new Handler().postDelayed(new Runnable() {
                 @Override
@@ -396,14 +402,30 @@ public class NewsFragment extends Fragment implements HtmlDownloader.HtmlDownloa
         }
     }
 
-    private void executeRssDownloadTaskWithNow() {
+    private void nowExecuteRssDownloadTask() {
         // 立即执行一次任务，这个时间最少是1000。
         new Timer().schedule(createRssDownloadTimerTask(), TWO_SECOND);
     }
 
-    private void executeRssDownloadTaskWithAuto() {
+    private void autoExecuteRssDownloadTask() {
         swipeRefreshLayout.setProgressViewOffset(false, 0, getResources().getDisplayMetrics().heightPixels/3);
         swipeRefreshLayout.setRefreshing(true);
         onRefresh();
+    }
+
+    private void autoDeleteNewsWithOld() {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... params) {
+                        readerProvider.deleteNews(String.format("%s<?", Reader.Newses.COLUMN_NAME_PUB_DATE),
+                                new String[]{String.valueOf(System.currentTimeMillis() - THREE_DAY)});
+                        return null;
+                    }
+                }.execute();
+            }
+        }, ONE_MINUTE);
     }
 }
