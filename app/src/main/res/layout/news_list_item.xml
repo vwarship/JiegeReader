@@ -7,13 +7,15 @@
     android:orientation="vertical">
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/tvNewsTitle"
         android:textSize="18sp"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        android:layout_toLeftOf="@+id/ivDeleteNews"
+        android:layout_toStartOf="@+id/ivDeleteNews" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -37,5 +39,17 @@
         android:layout_alignTop="@+id/tvNewsDate"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:id="@+id/ivDeleteNews"
+        android:src="@mipmap/ic_delete_news"
+        android:background="@drawable/image_view_selector"
+        android:onClick="onDeleteNews"
+        android:focusable="false"
+        android:clickable="true"
+        android:layout_alignTop="@+id/tvNewsTitle"
+        android:layout_alignParentRight="true" />
 
 </RelativeLayout>

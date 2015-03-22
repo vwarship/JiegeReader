@@ -28,6 +28,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignRight="@+id/swipe_refresh_layout"
         android:layout_alignEnd="@+id/swipe_refresh_layout"
-        android:layout_marginBottom="@dimen/activity_vertical_margin" />
+        android:layout_marginRight="@dimen/top_right_margin"
+        android:layout_marginBottom="@dimen/top_bottom_margin" />
 
 </RelativeLayout>

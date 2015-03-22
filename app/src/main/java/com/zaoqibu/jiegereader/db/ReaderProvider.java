@@ -43,6 +43,7 @@ public class ReaderProvider {
                     + Reader.Newses.COLUMN_NAME_DESCRIPTION + " TEXT,"
                     + Reader.Newses.COLUMN_NAME_PUB_DATE + " INTEGER,"
                     + Reader.Newses.COLUMN_NAME_CREATE_DATE + " INTEGER,"
+                    + Reader.Newses.COLUMN_NAME_STATE + " INTEGER,"
                     + Reader.Newses.COLUMN_NAME_RSS_ID + " INTEGER"
                     + ");");
 
@@ -150,6 +151,10 @@ public class ReaderProvider {
             values.put(Reader.Newses.COLUMN_NAME_CREATE_DATE, now);
         }
 
+        if (values.containsKey(Reader.Newses.COLUMN_NAME_STATE) == false) {
+            values.put(Reader.Newses.COLUMN_NAME_STATE, Reader.Newses.StateValue.Unread.getValue());
+        }
+
         // Opens the database object in "write" mode.
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
 
@@ -166,6 +171,28 @@ public class ReaderProvider {
             return true;
 
         return false;
+    }
+
+    public int deleteNews(String where, String[] whereArgs) {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+
+        int count = db.delete(Reader.Newses.TABLE_NAME,
+                where,
+                whereArgs);
+
+        return count;
+    }
+
+    public int updateNews(ContentValues values, String where, String[] whereArgs) {
+        SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+
+        int count = db.update(
+                Reader.Newses.TABLE_NAME,
+                values,
+                where,
+                whereArgs);
+
+        return count;
     }
 
 //    @Override

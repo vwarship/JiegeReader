@@ -17,7 +17,20 @@ public class Reader {
         public static final String COLUMN_NAME_DESCRIPTION = "description";
         public static final String COLUMN_NAME_PUB_DATE = "pub_date";
         public static final String COLUMN_NAME_CREATE_DATE = "created_date";
+        public static final String COLUMN_NAME_STATE = "state";
         public static final String COLUMN_NAME_RSS_ID = "rss_id";
+
+        public enum StateValue {
+            Unread(0), Readed(1), Deleted(2);
+            private int value;
+            StateValue(int value) {
+                this.value = value;
+            }
+
+            public int getValue() {
+                return value;
+            }
+        }
     }
 
     public static final class Rsses implements BaseColumns {

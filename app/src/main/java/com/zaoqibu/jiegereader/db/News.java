@@ -11,6 +11,7 @@ public class News {
     private String description;
     private long pubDate;
     private long createDate;
+    private int state;
 
     public int getId() {
         return id;
@@ -66,5 +67,13 @@ public class News {
 
     public void setCreateDate(long createDate) {
         this.createDate = createDate;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
     }
 }

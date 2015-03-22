@@ -3,9 +3,7 @@ package com.zaoqibu.jiegereader.async;
 import android.os.AsyncTask;
 
 import com.zaoqibu.jiegereader.db.RssFeed;
-import com.zaoqibu.jiegereader.util.DateUtil;
 
-import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -66,8 +64,6 @@ public class HtmlDownloader extends AsyncTask<List<RssFeed>, String, Void> {
 
         try {
             HttpResponse response = httpClient.execute(request);
-//            long getLastModifiedTime = getLastModifiedTime(response);
-
             final int responseCode = response.getStatusLine().getStatusCode();
             if(responseCode == HttpStatus.SC_OK) {
                 InputStream in = response.getEntity().getContent();
@@ -91,20 +87,6 @@ public class HtmlDownloader extends AsyncTask<List<RssFeed>, String, Void> {
         }
 
         return html;
-    }
-
-    private long getLastModifiedTime(HttpResponse response) {
-        long lastModified = 0;
-
-        Header header = response.getFirstHeader("Date");
-        if (header != null) {
-            String lastModifiedStr = header.getValue();
-
-            DateUtil dateUtil = new DateUtil();
-            lastModified = dateUtil.dateParse(lastModifiedStr);
-        }
-
-        return lastModified;
     }
 
     private String getCharsetName(String url) {

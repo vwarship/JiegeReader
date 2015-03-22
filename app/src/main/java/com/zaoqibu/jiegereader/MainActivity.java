@@ -98,6 +98,8 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                 intent.putExtra(ShowOriginalArticleActivity.EXTRA_TITLE, news.getTitle());
                 intent.putExtra(ShowOriginalArticleActivity.EXTRA_URL, news.getLink());
                 startActivity(intent);
+
+                updateNewsStateWithReaded(news);
             }
         });
 
@@ -157,12 +159,28 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
         readNewsesFirst();
     }
 
+    private void updateNewsStateWithReaded(News news) {
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(Reader.Newses.COLUMN_NAME_STATE, Reader.Newses.StateValue.Readed.getValue());
+
+        int count = readerProvider.updateNews(contentValues,
+                String.format("%s=?", Reader.Newses._ID),
+                new String[]{String.valueOf(news.getId())});
+
+        if (count > 0) {
+            news.setState(Reader.Newses.StateValue.Readed.getValue());
+            newsArrayAdapter.notifyDataSetChanged();
+        }
+    }
+
     @Override
     public void onDownloaded(final int rssFeedId, String html) {
         new AsyncTask<String, ContentValues, Void>() {
             @Override
             protected Void doInBackground(String... params) {
                 final String html = params[0];
+                if (html == null || html.isEmpty())
+                    return null;
 
                 RssParser rssParser = new RssParser();
                 Rss rss = rssParser.parse(html);
@@ -218,7 +236,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                             Reader.Newses.COLUMN_NAME_TITLE,
                             Reader.Newses.COLUMN_NAME_LINK,
                             Reader.Newses.COLUMN_NAME_SOURCE,
-                            Reader.Newses.COLUMN_NAME_DESCRIPTION,
+                            Reader.Newses.COLUMN_NAME_STATE,
                             Reader.Newses.COLUMN_NAME_PUB_DATE
                     };
 
@@ -229,8 +247,13 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                 String selection = null;
                 String[] selectionArgs = null;
                 if (rssFeedId > 0) {
-                    selection = String.format("%s=?", Reader.Newses.COLUMN_NAME_RSS_ID);
-                    selectionArgs = new String[]{String.valueOf(rssFeedId)};
+                    selection = String.format("%s=? AND %s NOT IN (?)",
+                            Reader.Newses.COLUMN_NAME_RSS_ID, Reader.Newses.COLUMN_NAME_STATE);
+                    selectionArgs = new String[]{String.valueOf(rssFeedId), String.valueOf(Reader.Newses.StateValue.Deleted.getValue())};
+                } else {
+                    selection = String.format("%s NOT IN (?)",
+                            Reader.Newses.COLUMN_NAME_STATE);
+                    selectionArgs = new String[]{String.valueOf(Reader.Newses.StateValue.Deleted.getValue())};
                 }
                 Cursor cursor = readerProvider.query(PROJECTION,
                         selection, selectionArgs,
@@ -241,7 +264,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                 int titleColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_TITLE);
                 int linkColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_LINK);
                 int sourceColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_SOURCE);
-                int descriptionColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_DESCRIPTION);
+                int stateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_STATE);
                 int pubDateColumnIndex = cursor.getColumnIndex(Reader.Newses.COLUMN_NAME_PUB_DATE);
 
                 while (cursor.moveToNext()) {
@@ -250,7 +273,7 @@ public class MainActivity extends Fragment implements HtmlDownloader.HtmlDownloa
                     news.setTitle(cursor.getString(titleColumnIndex));
                     news.setLink(cursor.getString(linkColumnIndex));
                     news.setSource(cursor.getString(sourceColumnIndex));
-                    news.setDescription(cursor.getString(descriptionColumnIndex));
+                    news.setState(cursor.getInt(stateColumnIndex));
                     news.setPubDate(cursor.getLong(pubDateColumnIndex));
 
                     newses.add(news);

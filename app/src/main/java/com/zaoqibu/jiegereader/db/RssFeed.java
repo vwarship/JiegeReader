@@ -9,6 +9,7 @@ public class RssFeed {
     private String link;
     private boolean isFeed;
     private long createDate;
+    private long updateDate;
 
     public int getId() {
         return id;
@@ -48,5 +49,13 @@ public class RssFeed {
 
     public void setCreateDate(long createDate) {
         this.createDate = createDate;
+    }
+
+    public long getUpdateDate() {
+        return updateDate;
+    }
+
+    public void setUpdateDate(long updateDate) {
+        this.updateDate = updateDate;
     }
 }
