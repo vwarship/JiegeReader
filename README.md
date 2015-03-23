@@ -158,3 +158,5 @@
 ![](./snapshots/show_news.png)
 ![](./snapshots/left.png)
 ![](./snapshots/subscription_center.png)
+![](./snapshots/top.png)
+![](./snapshots/refresh.png)
