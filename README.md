@@ -1,4 +1,5 @@
 ﻿## 杰哥阅读器
+<img src="snapshots/ic_launcher.png" width="144" alt="pageres">
 
 ### Backlog
 
