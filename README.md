@@ -151,3 +151,9 @@
 * 制作了图标。
 
 * 增加了中英文的支持。
+
+##截图
+![](./snapshots/main.png)
+![](./snapshots/show_news.png)
+![](./snapshots/left.png)
+![](./snapshots/subscription_center.png)
